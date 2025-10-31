@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3 uid="uid://biqsowi6baybf"]
+
+[ext_resource type="Texture2D" uid="uid://scn5svkvhind" path="res://prueba-sprites/scrible/PNG/Default/tile_brick.png" id="1_i3e30"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sg623"]
+size = Vector2(358, 62)
+
+[node name="StaticBody2D" type="StaticBody2D"]
+collision_mask = 3
+
+[node name="TileBrick" type="Sprite2D" parent="."]
+texture = ExtResource("1_i3e30")
+
+[node name="TileBrick2" type="Sprite2D" parent="."]
+position = Vector2(59, 0)
+texture = ExtResource("1_i3e30")
+
+[node name="TileBrick3" type="Sprite2D" parent="."]
+position = Vector2(119, 0)
+texture = ExtResource("1_i3e30")
+
+[node name="TileBrick4" type="Sprite2D" parent="."]
+position = Vector2(238, 0)
+texture = ExtResource("1_i3e30")
+
+[node name="TileBrick6" type="Sprite2D" parent="."]
+position = Vector2(297, 0)
+texture = ExtResource("1_i3e30")
+
+[node name="TileBrick5" type="Sprite2D" parent="."]
+position = Vector2(179, 0)
+texture = ExtResource("1_i3e30")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(149, 1)
+shape = SubResource("RectangleShape2D_sg623")

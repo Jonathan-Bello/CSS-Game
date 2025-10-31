@@ -1,0 +1,71 @@
+[gd_scene load_steps=10 format=3 uid="uid://bdhcrn6wk81au"]
+
+[ext_resource type="PackedScene" uid="uid://biqsowi6baybf" path="res://personaje/piso.tscn" id="1_my8sg"]
+[ext_resource type="PackedScene" uid="uid://gxol7n07h5vq" path="res://personaje/bala.tscn" id="2_sfg0s"]
+[ext_resource type="PackedScene" uid="uid://dkt718jrb80h1" path="res://personaje/player.tscn" id="3_o7lj3"]
+[ext_resource type="Script" uid="uid://8layxsk8kxcv" path="res://personaje/camera_2d.gd" id="4_sfg0s"]
+[ext_resource type="PackedScene" uid="uid://bo6irkdxeu1a4" path="res://personaje/enemigo.tscn" id="5_o7lj3"]
+[ext_resource type="Texture2D" uid="uid://u0savx2w6uwu" path="res://prueba-sprites/scrible/PNG/Default/tile_flag.png" id="6_cl76r"]
+[ext_resource type="PackedScene" uid="uid://cyqsvmorj3vqb" path="res://personaje/canvas_layer.tscn" id="7_obm47"]
+[ext_resource type="Script" uid="uid://bgq2vhk1jugu8" path="res://personaje/GameController.gd" id="8_cfh5y"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r4udj"]
+size = Vector2(68, 64.5)
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("object_to_follow")]
+position = Vector2(581, 272)
+script = ExtResource("4_sfg0s")
+object_to_follow = NodePath("../CharacterBody2D")
+
+[node name="StaticBody2D" parent="." instance=ExtResource("1_my8sg")]
+position = Vector2(65, 579)
+
+[node name="StaticBody2D2" parent="." instance=ExtResource("1_my8sg")]
+position = Vector2(453, 476)
+
+[node name="StaticBody2D3" parent="." instance=ExtResource("1_my8sg")]
+position = Vector2(797.00006, 340)
+rotation = -0.36205828
+
+[node name="StaticBody2D4" parent="." instance=ExtResource("1_my8sg")]
+position = Vector2(414.99997, 146.99998)
+rotation = 0.1753507
+
+[node name="StaticBody2D5" parent="." instance=ExtResource("1_my8sg")]
+position = Vector2(38.999996, 96)
+rotation = 0.08458714
+
+[node name="RigidBody2D2" parent="." instance=ExtResource("2_sfg0s")]
+position = Vector2(874, 99)
+
+[node name="RigidBody2D" parent="." instance=ExtResource("2_sfg0s")]
+position = Vector2(135, 318)
+
+[node name="CharacterBody2D" parent="." instance=ExtResource("3_o7lj3")]
+position = Vector2(120, 516)
+
+[node name="Enemy" parent="." instance=ExtResource("5_o7lj3")]
+position = Vector2(166, 21)
+
+[node name="TileFlag" type="Sprite2D" parent="."]
+light_mask = 2
+visibility_layer = 5
+position = Vector2(318, 53)
+texture = ExtResource("6_cl76r")
+
+[node name="Area2D" type="Area2D" parent="TileFlag"]
+collision_layer = 0
+collision_mask = 6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TileFlag/Area2D"]
+position = Vector2(0, -1.25)
+shape = SubResource("RectangleShape2D_r4udj")
+
+[node name="CanvasLayer" parent="." instance=ExtResource("7_obm47")]
+
+[node name="Node2D" type="Node2D" parent="."]
+script = ExtResource("8_cfh5y")
+
+[connection signal="body_entered" from="TileFlag/Area2D" to="CharacterBody2D" method="_on_area_2d_body_entered"]
