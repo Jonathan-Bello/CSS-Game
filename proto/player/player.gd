@@ -434,10 +434,15 @@ func _attack(dir: Direction) -> void:
 		attack_area.monitoring = true
 		attack_area.visible = true
 
-	var clip := &"attack"
-	if dir == Direction.UP:   clip = &"attack_up"
-	if dir == Direction.DOWN: clip = &"attack_down"
-	_play_if_changed(clip, false)
+        var clip := &"attack"
+        if dir == Direction.UP:
+                clip = &"attack_up"
+        elif dir == Direction.DOWN:
+                clip = &"attack_down"
+
+        if anim and not anim.has_animation(String(clip)):
+                clip = &"attack"
+        _play_if_changed(clip, false)
 
 	# Pequeño “hit-stop” opcional:
 	if ATTACK_KNOCK_PAUSE > 0.0:

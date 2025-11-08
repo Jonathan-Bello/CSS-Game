@@ -253,7 +253,7 @@ tracks/19/keys = {
 }
 
 [sub_resource type="Animation" id="Animation_ooeqd"]
-resource_name = "atack"
+resource_name = "attack"
 
 [sub_resource type="Animation" id="Animation_gcpke"]
 
@@ -824,7 +824,7 @@ tracks/8/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gcpke"]
 _data = {
 &"RESET": SubResource("Animation_yncc2"),
-&"atack": SubResource("Animation_ooeqd"),
+&"attack": SubResource("Animation_ooeqd"),
 &"dash": SubResource("Animation_gcpke"),
 &"fall": SubResource("Animation_1hs1s"),
 &"idle": SubResource("Animation_1lfiw"),
