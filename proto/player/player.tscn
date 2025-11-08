@@ -1120,6 +1120,7 @@ resource_local_to_scene = true
 script = ExtResource("3_t6f4j")
 
 [node name="Player" type="CharacterBody2D"]
+groups = ["player"]
 script = ExtResource("1_7a6m1")
 JUMP_VELOCITY = -1500.0
 wall_probe_path = NodePath("wall_probe")

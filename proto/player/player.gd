@@ -154,6 +154,11 @@ var wall_jump_lock_timer := 0.0         # bloqueo de control tras wall jump
 var attack_timer := 0.0
 var lock_controls := false              # micro “hit-stop” al atacar
 
+# Seguidores / overlay
+var followers: Array[Node2D] = []
+var _followers_root: Node2D = null
+var controls_enabled := true
+
 
 # ─────────────────────────────────────────────────────────
 # REFERENCIAS (@onready)
@@ -172,6 +177,8 @@ var lock_controls := false              # micro “hit-stop” al atacar
 # ============================================================================
 func _ready() -> void:
 	# Consejos de wiring si algo falta:
+	_connect_overlay_signals()
+	_ensure_follow_manager()
 	if anim == null:       push_warning("AnimationPlayer no encontrado en '%s'." % anim_path)
 	if gfx_root == null:   push_warning("gfx_root no encontrado en '%s'." % gfx_root_path)
 	if wall_probe == null: push_warning("RayCast2D wall_probe no encontrado en '%s'." % wall_probe_path)
@@ -192,34 +199,38 @@ func _physics_process(delta: float) -> void:
 
 	time_since_jump_pressed += delta
 	if dash_cooldown > 0.0:      dash_cooldown = max(0.0, dash_cooldown - delta)
-	if dash_timer > 0.0:
-		dash_timer = max(0.0, dash_timer - delta)
-		if dash_timer <= 0.0 and state == State.DASH:
-			state = State.FALL   # termina fase de dash
+        if dash_timer > 0.0:
+                dash_timer = max(0.0, dash_timer - delta)
+                if dash_timer <= 0.0 and state == State.DASH:
+                        state = State.FALL   # termina fase de dash
 
-	if wall_stick_timer > 0.0:   wall_stick_timer = max(0.0, wall_stick_timer - delta)
-	if wall_coyote_timer > 0.0:  wall_coyote_timer = max(0.0, wall_coyote_timer - delta)
-	if wall_jump_lock_timer > 0.0: wall_jump_lock_timer = max(0.0, wall_jump_lock_timer - delta)
+        if wall_stick_timer > 0.0:   wall_stick_timer = max(0.0, wall_stick_timer - delta)
+        if wall_coyote_timer > 0.0:  wall_coyote_timer = max(0.0, wall_coyote_timer - delta)
+        if wall_jump_lock_timer > 0.0: wall_jump_lock_timer = max(0.0, wall_jump_lock_timer - delta)
 
-	if attack_timer > 0.0:
-		attack_timer = max(0.0, attack_timer - delta)
-		if attack_timer <= 0.0:
-			_end_attack()
+        if attack_timer > 0.0:
+                attack_timer = max(0.0, attack_timer - delta)
+                if attack_timer <= 0.0:
+                        _end_attack()
 
-	# 2) Entrada del jugador
-	var raw_dir := Input.get_axis("move_left", "move_right")
-	var dir := _apply_deadzone(raw_dir)
-	var want_down := Input.is_action_pressed("move_down")
+        # 2) Entrada del jugador
+	var raw_dir := 0.0
+	var dir := 0.0
+	var want_down := false
+	if controls_enabled:
+                raw_dir = Input.get_axis("move_left", "move_right")
+                dir = _apply_deadzone(raw_dir)
+                want_down = Input.is_action_pressed("move_down")
 
-	# 3) Saltos (coyote+buffer+doble) y dash / ataque
-	if not lock_controls:
-		_handle_jump_buffer()
-		_handle_dash(dir)
-		_handle_attack_input()
+        # 3) Saltos (coyote+buffer+doble) y dash / ataque
+	if controls_enabled and not lock_controls:
+                _handle_jump_buffer()
+                _handle_dash(dir)
+                _handle_attack_input()
 
-	# 4) Movimiento horizontal (no durante dash/attack, ni en push lock)
-	if state != State.DASH and state != State.ATTACK and wall_jump_lock_timer <= 0.0 and not lock_controls:
-		_hmove(dir, delta)
+        # 4) Movimiento horizontal (no durante dash/attack, ni en push lock)
+	if controls_enabled and state != State.DASH and state != State.ATTACK and wall_jump_lock_timer <= 0.0 and not lock_controls:
+                _hmove(dir, delta)
 
 	# 5) Gravedad HK-like
 	_apply_gravity(delta, want_down)
@@ -507,6 +518,72 @@ func _play_if_changed(anim_name: StringName, loop: bool = true) -> void:
 		anim.play(String(anim_name))
 		current_anim = anim_name
 
+
+# ============================================================================
+# SEGUIDORES (CssFollower) Y OVERLAY
+# ============================================================================
+func _register_follower(follower: Node2D) -> void:
+	if follower == null:
+		return
+	_cleanup_followers()
+	_ensure_follow_manager()
+	if followers.has(follower):
+		if is_instance_valid(_followers_root) and follower.get_parent() != _followers_root:
+			follower.reparent(_followers_root)
+		return
+	followers.append(follower)
+	if is_instance_valid(_followers_root) and follower.get_parent() != _followers_root:
+		follower.reparent(_followers_root)
+
+func _ensure_follow_manager() -> void:
+	if not is_instance_valid(_followers_root):
+		_followers_root = get_node_or_null("Followers") as Node2D
+		if _followers_root == null:
+			_followers_root = Node2D.new()
+			_followers_root.name = "Followers"
+			add_child(_followers_root)
+	if not followers.is_empty() and is_instance_valid(_followers_root):
+		for follower in followers:
+			if is_instance_valid(follower) and follower.get_parent() != _followers_root:
+				follower.reparent(_followers_root)
+	_cleanup_followers()
+
+func _cleanup_followers() -> void:
+	if followers.is_empty():
+		return
+	if not is_instance_valid(_followers_root):
+		followers.clear()
+		return
+	followers = followers.filter(func(follower: Node2D) -> bool:
+		return is_instance_valid(follower) and follower.get_parent() == _followers_root
+	) as Array[Node2D]
+
+func _connect_overlay_signals() -> void:
+	var overlays := get_tree().get_nodes_in_group("web_overlay")
+	for overlay in overlays:
+		_attach_overlay_signals(overlay)
+	if not get_tree().is_connected("node_added", Callable(self, "_on_tree_node_added")):
+		get_tree().connect("node_added", Callable(self, "_on_tree_node_added"))
+
+func _attach_overlay_signals(overlay: Node) -> void:
+	if overlay == null:
+		return
+	if overlay.has_signal("overlay_opened") and not overlay.is_connected("overlay_opened", Callable(self, "_on_overlay_opened")):
+		overlay.connect("overlay_opened", Callable(self, "_on_overlay_opened"), Object.CONNECT_REFERENCE_COUNTED)
+	if overlay.has_signal("overlay_closed") and not overlay.is_connected("overlay_closed", Callable(self, "_on_overlay_closed")):
+		overlay.connect("overlay_closed", Callable(self, "_on_overlay_closed"), Object.CONNECT_REFERENCE_COUNTED)
+
+func _on_tree_node_added(node: Node) -> void:
+	if node.is_in_group("web_overlay"):
+		_attach_overlay_signals(node)
+
+func _on_overlay_opened() -> void:
+	controls_enabled = false
+
+func _on_overlay_closed() -> void:
+	controls_enabled = true
+	_ensure_follow_manager()
+	_cleanup_followers()
 
 # ============================================================================
 # DEBUG — Labels
