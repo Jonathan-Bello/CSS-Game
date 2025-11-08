@@ -33,42 +33,45 @@ extends CharacterBody2D
 # GRUPOS DE EXPORTS (para orden en el Inspector)
 # ─────────────────────────────────────────────────────────
 @export_group("Movimiento — Horizontal")
+# Valores iniciales de referencia: MAX_SPEED=850, ACCEL_GROUND=8000, DECEL_GROUND=9000, ACCEL_AIR=6000, DECEL_AIR=5000.
 ## Velocidad máxima en X.
-@export var MAX_SPEED: float = 850.0
+@export var MAX_SPEED: float = 900.0
 ## Aceleración en suelo.
-@export var ACCEL_GROUND: float = 8000.0
+@export var ACCEL_GROUND: float = 9200.0
 ## Desaceleración en suelo (fricción).
-@export var DECEL_GROUND: float = 9000.0
+@export var DECEL_GROUND: float = 10500.0
 ## Aceleración en aire.
-@export var ACCEL_AIR: float    = 6000.0
+@export var ACCEL_AIR: float    = 6500.0
 ## Desaceleración en aire.
-@export var DECEL_AIR: float    = 5000.0
+@export var DECEL_AIR: float    = 5200.0
 ## Umbral para considerar “corriendo” (para FSM/anims).
 @export var RUN_THRESHOLD: float = 10.0
 ## Zona muerta para sticks (como en el script que pasaste).
 @export var STICK_DEAD_ZONE: float = 0.5
 
 @export_group("Salto y Gravedad — HK-like")
+# Valores iniciales de referencia: GRAVITY=3800, MAX_FALL_SPEED=2800, JUMP_VELOCITY=-1150, COYOTE_TIME=0.09, JUMP_BUFFER_TIME=0.12,
+# FALL_MULTIPLIER=1.9, LOW_JUMP_MULTIPLIER=2.4, FAST_FALL_MULTIPLIER=2.6, APEX_THRESHOLD=120, APEX_GRAVITY_SCALE=0.85.
 ## Gravedad base (se escalará según estado).
-@export var GRAVITY: float = 3800.0
+@export var GRAVITY: float = 3600.0
 ## Límite de velocidad de caída.
-@export var MAX_FALL_SPEED: float = 2800.0
+@export var MAX_FALL_SPEED: float = 3000.0
 ## Velocidad vertical del salto (negativa = subir).
-@export var JUMP_VELOCITY: float = -1150.0
+@export var JUMP_VELOCITY: float = -1180.0
 ## “Coyote time”: margen tras dejar el suelo para aún poder saltar.
-@export var COYOTE_TIME: float = 0.09
+@export var COYOTE_TIME: float = 0.1
 ## Buffer de entrada: si presionas salto un pelín antes de tocar el suelo.
-@export var JUMP_BUFFER_TIME: float = 0.12
+@export var JUMP_BUFFER_TIME: float = 0.14
 ## Caída más pesada que el ascenso.
-@export var FALL_MULTIPLIER: float     = 1.9
+@export var FALL_MULTIPLIER: float     = 2.0
 ## Cortar salto al soltar botón.
-@export var LOW_JUMP_MULTIPLIER: float = 2.4
+@export var LOW_JUMP_MULTIPLIER: float = 2.6
 ## Fast-fall al mantener abajo durante la caída.
-@export var FAST_FALL_MULTIPLIER: float = 2.6
+@export var FAST_FALL_MULTIPLIER: float = 2.8
 ## Umbral de ápice (zona donde “flota” un poquito).
-@export var APEX_THRESHOLD: float = 120.0
+@export var APEX_THRESHOLD: float = 140.0
 ## Escala de gravedad en el ápice.
-@export var APEX_GRAVITY_SCALE: float = 0.85
+@export var APEX_GRAVITY_SCALE: float = 0.8
 
 @export_group("Doble Salto")
 ## Habilita/Deshabilita.
@@ -77,14 +80,15 @@ extends CharacterBody2D
 @export var DOUBLE_JUMP_VELOCITY: float = -1000.0
 
 @export_group("Dash — Parabólico")
+# Valores iniciales de referencia: DASH_SPEED=1400, DASH_UP_VELOCITY=-500, DASH_TIME=0.18, DASH_COOLDOWN=0.20.
 ## Impulso horizontal del dash.
-@export var DASH_SPEED: float = 1400.0
+@export var DASH_SPEED: float = 1500.0
 ## Impulso vertical (normalmente negativo para levantar un poco).
-@export var DASH_UP_VELOCITY: float = -500.0
+@export var DASH_UP_VELOCITY: float = -430.0
 ## Duración del “estado dash” (afecta control/anim).
-@export var DASH_TIME: float = 0.18
+@export var DASH_TIME: float = 0.2
 ## Enfriamiento entre dashes.
-@export var DASH_COOLDOWN: float = 0.20
+@export var DASH_COOLDOWN: float = 0.16
 
 @export_group("Pared — (RayCast2D orientado en la escena)")
 ## “Gravedad” durante wall slide (más suave).
