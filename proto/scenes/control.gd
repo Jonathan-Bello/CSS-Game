@@ -107,20 +107,20 @@ func _load_editor_html() -> void:
   button{background:#4a90e2;border:0;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
   button:disabled{opacity:.5;cursor:wait}
   select{background:#123;color:#fff;border:1px solid #345;border-radius:6px;padding:6px}
-  .main{display:grid;grid-template-columns:2fr 1fr;gap:12px;padding:8px;box-sizing:border-box;height:100%}
-  .editor{display:grid;grid-template-rows:auto 1fr;gap:8px}
+  .main{display:grid;grid-template-columns:2fr 1fr;gap:12px;padding:8px;box-sizing:border-box;height:100%;min-height:0}
+  .editor{display:grid;grid-template-rows:auto 1fr;gap:8px;min-height:0}
   textarea{width:100%;height:160px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:8px;box-sizing:border-box;padding:8px}
   .preview{display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#0f1b33,#0b1222);border:1px solid #243049;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.4)}
   svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
-  .chat{display:flex;flex-direction:column;gap:8px;background:#0b1222cc;border:1px solid #243049;border-radius:12px;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-  .chat header{display:flex;align-items:center;gap:8px;font-weight:bold;letter-spacing:.5px}
+  .chat{display:grid;grid-template-rows:auto 1fr auto auto;gap:8px;background:#0b1222cc;border:1px solid #243049;border-radius:12px;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.35);min-height:0;max-height:100%}
+  .chat header{display:flex;align-items:center;gap:8px;font-weight:bold;letter-spacing:.5px;color:#eac435}
   .chat header span{font-size:12px;color:#b2c7ff}
-  .log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+  .log{overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding-right:4px;min-height:0;max-height:360px}
   .msg{display:grid;gap:4px;background:#111b33b8;border:1px solid #243049;border-radius:10px;padding:8px}
   .msg.user{border-color:#4a90e2}
-  .msg.ai{border-color:#66ffa6}
+  .msg.ai{border-color:#eac43544;background:linear-gradient(135deg,#181e32,#0f1629)}
   .msg .who{font-size:12px;color:#9fb2e7;display:flex;align-items:center;gap:6px}
-  .msg.ai .who{color:#7af7bd}
+  .msg.ai .who{color:#eac435}
   .bubble{line-height:1.4}
   .chat form{display:flex;gap:8px}
   .chat input{flex:1;background:#0f1b33;border:1px solid #243049;border-radius:10px;color:#e6f3ff;padding:10px 12px}
@@ -137,7 +137,7 @@ func _load_editor_html() -> void:
           <button onclick="saveCSS()">Guardar CSS</button>
           <button onclick="makeSprite()">Crear Sprite</button>
           <button onclick="ipc.postMessage('close')">Cerrar</button>
-          <span style="margin-left:auto;font-size:13px;color:#9fb2e7">Mentora IA: Lumina (tono aventurera)</span>
+          <span style="margin-left:auto;font-size:13px;color:#eac435">Mentora IA: Emmys (tono aventurera)</span>
     </div>
         <div class="main">
                 <div class="editor">
@@ -153,13 +153,13 @@ svg{width:180px;height:180px}
     </div>
                 </div>
                 <div class="chat">
-                        <header>💬 Lumina, guardiana CSS <span>(consejos breves + ejemplos)</span></header>
+                        <header>💬 Emmys, guardiana CSS <span>(consejos breves + ejemplos)</span></header>
                         <div class="log" id="log"></div>
                         <form id="chatForm">
                                 <input id="msg" type="text" placeholder="Pregúntame sobre sombras, gradientes, animaciones..." autocomplete="off" />
                                 <button type="submit">Pedir consejo</button>
                         </form>
-                        <p class="aside-note">Lumina responde como un personaje del juego y se apoya en tu CSS actual para dar tips accionables.</p>
+                        <p class="aside-note">Emmys responde como un personaje del juego y se apoya en tu CSS actual para dar tips accionables.</p>
                 </div>
         </div>
   </div>
@@ -177,8 +177,9 @@ css.addEventListener('input', ()=> styleEl.textContent = css.value);
 ipc.postMessage('html_loaded');
 
 const persona = {
-        name: 'Lumina',
-        role: 'guardiana CSS del bastión de sprites'
+        name: 'Emmys',
+        role: 'guardiana CSS del bastión de sprites',
+        color: '#EAC435'
 };
 
 function addMsg(kind, text){
@@ -189,46 +190,79 @@ function addMsg(kind, text){
         log.scrollTop = log.scrollHeight;
 }
 
-function analyzeCssHints(code){
-        const hints = [];
-        if(/box-shadow/i.test(code)) hints.push('tu sombra puede ganar dramatismo con valores múltiples: box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 3px rgba(92,207,255,.2);');
-        if(/linear-gradient/i.test(code)) hints.push('combina gradientes con colores vecinos (#5cf → #82e0ff) para conservar legibilidad.');
-        if(/animation/i.test(code)) hints.push('recuerda animation-fill-mode: forwards; para que el estado final se mantenga.');
-        if(/stroke-width/i.test(code)) hints.push('usa stroke-linejoin: round; para que las esquinas se sientan más “soft”.');
-        if(!hints.length) hints.push('puedes añadir glow con filter: drop-shadow(0 0 12px rgba(92,207,255,.55));');
-        return hints.join(' ');
-}
-
-function craftReply(question){
+async function callEmmysLLM(question){
+        const apiUrl = 'https://api.openai.com/v1/chat/completions';
+        const apiKey = 'PON_AQUI_TU_API_KEY_OPENAI'; // remplaza con tu clave real antes de compilar
         const cssNow = css.value;
-        const focus = question.toLowerCase();
-        let hook = 'Aquí Lumina en la torre de estilo: ';
-        if(focus.includes('gradiente')||focus.includes('gradient')) hook += 'veo que buscas transiciones suaves entre colores. ';
-        else if(focus.includes('sombra')||focus.includes('shadow')) hook += 'las sombras cuentan la historia de la luz. ';
-        else if(focus.includes('anim')) hook += 'una animación corta añade vida al sprite. ';
-        else hook += 'vamos a pulir este sprite con un truco rápido. ';
-        const hint = analyzeCssHints(cssNow);
-        const sample = '`#shape { transition: 160ms ease; transform-origin: 50% 60%; }`';
-        return `${hook}${hint} Prueba también ${sample} para darle carácter de aventurera.`;
+
+        const body = {
+                model: 'gpt-3.5-turbo',
+                messages: [
+                        {role: 'system', content: `Eres Emmys, guardiana CSS de un videojuego. Responde en tono aventurero, breve y con ejemplos. Color de firma ${persona.color}. Siempre usa el CSS actual que recibe para dar tips.`},
+                        {role: 'user', content: `CSS actual:\n${cssNow}\n\nPregunta: ${question}`}
+                ],
+                temperature: 0.6,
+                max_tokens: 180
+        };
+
+        const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(body)
+        });
+
+        if(!res.ok){
+                throw new Error('Error del modelo: ' + res.status);
+        }
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content?.trim();
+        if(!reply) throw new Error('Respuesta vacía del modelo');
+        return reply;
 }
 
-function sendToAI(evt){
+function localFallback(question){
+        const cssNow = css.value;
+        const hints = [];
+        if(/box-shadow/i.test(cssNow)) hints.push('Refuerza la luz con capas: box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 4px rgba(234,196,53,.18);');
+        if(/linear-gradient/i.test(cssNow)) hints.push('Usa stops cercanos (0%, 12%, 100%) para lograr brillo dorado y mantener legibilidad.');
+        if(/animation/i.test(cssNow)) hints.push('Añade animation-fill-mode: forwards para conservar la pose final.');
+        if(/stroke-width/i.test(cssNow)) hints.push('stroke-linejoin: round suaviza las esquinas heroicas.');
+        if(!hints.length) hints.push('Puedes sumar glow: filter: drop-shadow(0 0 14px rgba(234,196,53,.55));');
+        const focus = question.toLowerCase();
+        let hook = 'Emmys aquí, brillo ámbar en mano: ';
+        if(focus.includes('gradiente')||focus.includes('gradient')) hook += 'veo rutas de color que necesitan transición suave. ';
+        else if(focus.includes('sombra')||focus.includes('shadow')) hook += 'las sombras cuentan de dónde viene tu luz. ';
+        else if(focus.includes('anim')) hook += 'una animación corta mantiene el ritmo de la aventura. ';
+        else hook += 'pulamos tu pieza con un truco rápido. ';
+        const sample = '`#shape { transition: 160ms ease; transform-origin: 50% 60%; }`';
+        return `${hook}${hints.join(' ')} Prueba también ${sample} para darle carácter.`;
+}
+
+async function sendToAI(evt){
         evt.preventDefault();
         const q = msg.value.trim();
         if(!q) return;
         addMsg('user', q);
         msg.value = '';
-        form.querySelector('button').disabled = true;
-        setTimeout(()=>{
-                const reply = craftReply(q);
+        const submitBtn = form.querySelector('button');
+        submitBtn.disabled = true;
+        try{
+                const reply = await callEmmysLLM(q);
                 addMsg('ai', reply);
-                form.querySelector('button').disabled = false;
+        }catch(err){
+                console.error(err);
+                addMsg('ai', localFallback(q));
+        }finally{
+                submitBtn.disabled = false;
                 ipc.postMessage(JSON.stringify({type:'ai_chat', question:q, css: css.value}));
-        }, 260);
+        }
 }
 
 form.addEventListener('submit', sendToAI);
-addMsg('ai', '¡Salud, creador! Soy Lumina. Dame tu duda CSS y te doy un tip que suene a aventura.');
+addMsg('ai', '¡Salud, creador! Soy Emmys, brillo ámbar (#EAC435). Muéstrame tu duda CSS y te daré un tip aventurero usando tu código actual.');
 
 function setTpl(kind){
   let inner = '';
