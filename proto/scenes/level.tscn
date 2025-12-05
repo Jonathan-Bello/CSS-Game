@@ -60,7 +60,7 @@ physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_afsis")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ja6st"]
-size = Vector2(271, 199)
+size = Vector2(162, 130.5)
 
 [node name="level" type="Node2D"]
 
@@ -73,7 +73,7 @@ tile_map_data = PackedByteArray("AAAAAAEAAAACAAAAAAABAAEAAAACAAAAAAACAAEAAAACAAA
 tile_set = SubResource("TileSet_fc8pn")
 
 [node name="Player" parent="." instance=ExtResource("2_74bkv")]
-position = Vector2(1149, 143.00005)
+position = Vector2(908, -484.99994)
 scale = Vector2(0.35, 0.35)
 collision_layer = 3
 collision_mask = 3
@@ -101,12 +101,12 @@ focused_when_created = false
 layout_mode = 2
 
 [node name="Area2D" type="Area2D" parent="."]
-position = Vector2(1542, 133)
-collision_layer = 3
-collision_mask = 3
+position = Vector2(1559, 135)
+collision_layer = 2
+collision_mask = 2
 script = ExtResource("4_ydl1v")
 overlay_path = NodePath("../Player/Camera2D/Control/PanelContainer/WebView")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(73.5, 41.5)
+position = Vector2(33, 58.25)
 shape = SubResource("RectangleShape2D_ja6st")

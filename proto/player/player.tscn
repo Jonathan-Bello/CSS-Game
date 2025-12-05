@@ -158,98 +158,98 @@ tracks/11/keys = {
 tracks/12/type = "value"
 tracks/12/imported = false
 tracks/12/enabled = true
-tracks/12/path = NodePath("Skeleton2D/origen:scale")
+tracks/12/path = NodePath("Skeleton2D/sprites/BrazoD:visible")
 tracks/12/interp = 1
 tracks/12/loop_wrap = true
 tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(1, 1)]
+"update": 1,
+"values": [false]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
 tracks/13/enabled = true
-tracks/13/path = NodePath("Skeleton2D/sprites/BrazoD:visible")
+tracks/13/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:position")
 tracks/13/interp = 1
 tracks/13/loop_wrap = true
 tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Vector2(-75, -112)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
 tracks/14/enabled = true
-tracks/14/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:position")
+tracks/14/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:rotation")
 tracks/14/interp = 1
 tracks/14/loop_wrap = true
 tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(-75, -112)]
+"values": [0.0]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
 tracks/15/enabled = true
-tracks/15/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:rotation")
+tracks/15/path = NodePath("Skeleton2D/origen/cintura/torso/brazoI:position")
 tracks/15/interp = 1
 tracks/15/loop_wrap = true
 tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [Vector2(64, -110)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
 tracks/16/enabled = true
-tracks/16/path = NodePath("Skeleton2D/origen/cintura/torso/brazoI:position")
+tracks/16/path = NodePath("Skeleton2D/origen/cintura/torso/brazoI:rotation")
 tracks/16/interp = 1
 tracks/16/loop_wrap = true
 tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(64, -110)]
+"values": [-0.029809957]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
 tracks/17/enabled = true
-tracks/17/path = NodePath("Skeleton2D/origen/cintura/torso/brazoI:rotation")
+tracks/17/path = NodePath("Skeleton2D/sprites/BrazoI:visible")
 tracks/17/interp = 1
 tracks/17/loop_wrap = true
 tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-0.029809957]
+"update": 1,
+"values": [false]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
 tracks/18/enabled = true
-tracks/18/path = NodePath("Skeleton2D/sprites/BrazoI:visible")
+tracks/18/path = NodePath("Skeleton2D/origen:rotation")
 tracks/18/interp = 1
 tracks/18/loop_wrap = true
 tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [0.0]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
 tracks/19/enabled = true
-tracks/19/path = NodePath("Skeleton2D/origen:rotation")
+tracks/19/path = NodePath("Skeleton2D/origen:scale")
 tracks/19/interp = 1
 tracks/19/loop_wrap = true
 tracks/19/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [Vector2(1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_ooeqd"]
@@ -715,110 +715,110 @@ loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Skeleton2D/origen:scale")
+tracks/0/path = NodePath("Skeleton2D/origen/cintura:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [Vector2(-1, 1)]
+"update": 0,
+"values": [Vector2(-6, 5)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Skeleton2D/origen/cintura:position")
+tracks/1/path = NodePath("Skeleton2D/origen/piernaD:position")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(-6, 5)]
+"values": [Vector2(-28, 51)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Skeleton2D/origen/piernaD:position")
+tracks/2/path = NodePath("Skeleton2D/origen/piernaD:rotation")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.06666667),
+"transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(-43, 22.999992)]
+"values": [-0.44327635, -0.5166174585903219]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton2D/origen/piernaD:rotation")
+tracks/3/path = NodePath("Skeleton2D/origen/piernaI:position")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"times": PackedFloat32Array(0, 0.06666667),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.5461959, 0.55850536]
+"values": [Vector2(28.999996, -44)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Skeleton2D/origen/piernaI:position")
+tracks/4/path = NodePath("Skeleton2D/origen/piernaI:rotation")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(37, 11)]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("Skeleton2D/origen/piernaI:rotation")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
 "times": PackedFloat32Array(0, 0.06666667),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [0.77511954, 0.7853981633974483]
+"values": [-0.48171087355043535, -0.47123889803846897]
 }
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("Skeleton2D/sprites/BrazoD:visible")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = false
+tracks/5/path = NodePath("Skeleton2D/sprites/BrazoD:visible")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [true]
 }
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:position")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.06666667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-75, -112), Vector2(-75, -112)]
+}
 tracks/7/type = "value"
 tracks/7/imported = false
 tracks/7/enabled = true
-tracks/7/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:position")
+tracks/7/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:rotation")
 tracks/7/interp = 1
 tracks/7/loop_wrap = true
 tracks/7/keys = {
 "times": PackedFloat32Array(0, 0.06666667),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(-75, -112), Vector2(-75, -112)]
+"values": [2.281792, 2.2863813201125716]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("Skeleton2D/origen/cintura/torso/brazoD:rotation")
+tracks/8/enabled = false
+tracks/8/path = NodePath("Skeleton2D/origen:scale")
 tracks/8/interp = 1
 tracks/8/loop_wrap = true
 tracks/8/keys = {
-"times": PackedFloat32Array(0, 0.06666667),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [2.281792, 2.2863813201125716]
+"values": [Vector2(-1, 1)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gcpke"]
@@ -1119,11 +1119,13 @@ point_count = 7
 resource_local_to_scene = true
 script = ExtResource("3_t6f4j")
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" groups=["player"]]
+collision_layer = 2
+collision_mask = 2
 script = ExtResource("1_7a6m1")
 JUMP_VELOCITY = -1500.0
-wall_probe_path = NodePath("wall_probe")
-attack_area_path = NodePath("hitboxes")
+wall_probe_path = NodePath("Skeleton2D/hitboxes/wall_probe")
+attack_area_path = NodePath("Skeleton2D/hitboxes")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_1lfiw")
@@ -1176,7 +1178,7 @@ remote_path = NodePath("../../../../../../sprites/Hemis")
 
 [node name="brazoD" type="Bone2D" parent="Skeleton2D/origen/cintura/torso"]
 position = Vector2(-75, -112)
-scale = Vector2(0.9999999, 0.9999999)
+scale = Vector2(0.9999998, 0.9999998)
 rest = Transform2D(1, 0, 0, 1, -75, -112)
 auto_calculate_length_and_angle = false
 length = 50.0
@@ -1188,7 +1190,7 @@ remote_path = NodePath("../../../../../sprites/BrazoD")
 [node name="brazoI" type="Bone2D" parent="Skeleton2D/origen/cintura/torso"]
 position = Vector2(64, -110)
 rotation = -0.029809957
-scale = Vector2(0.99999774, 0.99999774)
+scale = Vector2(0.99999344, 0.99999344)
 rest = Transform2D(0.9995557, -0.029805543, 0.029805543, 0.9995557, 64, -110)
 auto_calculate_length_and_angle = false
 length = 50.0
@@ -1202,7 +1204,7 @@ remote_path = NodePath("../../../sprites/Cintura")
 
 [node name="piernaD" type="Bone2D" parent="Skeleton2D/origen"]
 position = Vector2(-89, 17)
-scale = Vector2(0.99999934, 0.99999934)
+scale = Vector2(0.9999992, 0.9999992)
 rest = Transform2D(0.9999995, 0, 0, 0.9999995, -89, 17)
 auto_calculate_length_and_angle = false
 length = 90.0
@@ -1213,7 +1215,7 @@ remote_path = NodePath("../../../sprites/PiernaD")
 
 [node name="piernaI" type="Bone2D" parent="Skeleton2D/origen"]
 position = Vector2(42, 14)
-scale = Vector2(0.9999998, 0.9999998)
+scale = Vector2(0.9999997, 0.9999997)
 rest = Transform2D(0.9999998, 0, 0, 0.9999998, 42, 14)
 auto_calculate_length_and_angle = false
 length = 90.0
@@ -1227,7 +1229,7 @@ position = Vector2(20, 32)
 
 [node name="Cabeza" type="Sprite2D" parent="Skeleton2D/sprites"]
 texture_filter = 1
-position = Vector2(11, -235)
+position = Vector2(4, -225)
 offset = Vector2(-10.577301, -63.24276)
 
 [node name="Cabeza" type="Node2D" parent="Skeleton2D/sprites/Cabeza"]
@@ -1305,9 +1307,9 @@ metadata/_edit_lock_ = true
 
 [node name="BrazoI" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
-position = Vector2(61, -181)
+position = Vector2(54, -171)
 rotation = -0.029809967
-scale = Vector2(0.99999774, 0.99999774)
+scale = Vector2(0.99999344, 0.99999344)
 offset = Vector2(-62, 184)
 
 [node name="BrazoI" type="Node2D" parent="Skeleton2D/sprites/BrazoI"]
@@ -1328,7 +1330,7 @@ polygon = PackedVector2Array(29.14795, 85.68, 7.852051, -85.68, -29.14795, -43.1
 metadata/_edit_lock_ = true
 
 [node name="Torso" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-3, -71)
+position = Vector2(-10, -61)
 offset = Vector2(-1, -72)
 
 [node name="Torso" type="Node2D" parent="Skeleton2D/sprites/Torso"]
@@ -1388,7 +1390,7 @@ polygon = PackedVector2Array(-1, -9.5, -14.5, -1, -1, 9.5, 14.5, -1)
 metadata/_edit_lock_ = true
 
 [node name="Cintura" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(1, -5)
+position = Vector2(-6, 5)
 offset = Vector2(-5, -31)
 
 [node name="Cintura" type="Node2D" parent="Skeleton2D/sprites/Cintura"]
@@ -1422,8 +1424,9 @@ polygon = PackedVector2Array(-14.5, 34.75, -18.5, -34.75, -10.5, -34.75, 18.5, -
 metadata/_edit_lock_ = true
 
 [node name="PiernaI" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(42, 14)
-scale = Vector2(0.9999998, 0.9999998)
+position = Vector2(28.999996, -44)
+rotation = -0.4815278
+scale = Vector2(0.9999997, 0.9999997)
 offset = Vector2(6, 125)
 
 [node name="PiernaI" type="Node2D" parent="Skeleton2D/sprites/PiernaI"]
@@ -1470,8 +1473,9 @@ polygon = PackedVector2Array(-7.75, -72.75, 11.75, -77.25, -11.75, 77.25)
 metadata/_edit_lock_ = true
 
 [node name="PiernaD" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-89, 17)
-scale = Vector2(0.99999934, 0.99999934)
+position = Vector2(-28, 51)
+rotation = -0.4445583
+scale = Vector2(0.9999992, 0.9999992)
 offset = Vector2(8, 126)
 
 [node name="PiernaD" type="Node2D" parent="Skeleton2D/sprites/PiernaD"]
@@ -1485,6 +1489,7 @@ polygon = NodePath("Fill")
 curve = SubResource("Curve2D_1lfiw")
 update_curve_at_runtime = true
 arc_list = SubResource("Resource_7a6m1")
+metadata/_select_hint_ = true
 
 [node name="Fill" type="Polygon2D" parent="Skeleton2D/sprites/PiernaD/PiernaD/Path"]
 color = Color(0.12941177, 0.14509805, 0.19215687, 1)
@@ -1511,6 +1516,7 @@ polygon = NodePath("Fill")
 curve = SubResource("Curve2D_84u5l")
 update_curve_at_runtime = true
 arc_list = SubResource("Resource_fbtar")
+metadata/_select_hint_ = true
 
 [node name="Fill" type="Polygon2D" parent="Skeleton2D/sprites/PiernaD/PiernaD/Path3"]
 color = Color(0.23137255, 0.23921569, 0.32941177, 1)
@@ -1571,8 +1577,9 @@ metadata/_edit_lock_ = true
 
 [node name="BrazoD" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
-position = Vector2(-78, -183)
-scale = Vector2(0.9999999, 0.9999999)
+position = Vector2(-85, -173)
+rotation = 2.2818723
+scale = Vector2(0.9999998, 0.9999998)
 offset = Vector2(73, 193)
 
 [node name="BrazoD" type="Node2D" parent="Skeleton2D/sprites/BrazoD"]
@@ -1593,7 +1600,7 @@ polygon = PackedVector2Array(-51.75, 117.2609, -3.0379982, -117.26091, 51.75, -7
 metadata/_edit_lock_ = true
 
 [node name="Hemis" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(6, -399)
+position = Vector2(-1, -389)
 offset = Vector2(0, -50)
 
 [node name="Hemis" type="Node2D" parent="Skeleton2D/sprites/Hemis"]
@@ -1635,9 +1642,14 @@ color = Color(0.91764706, 0.76862746, 0.20784314, 1)
 polygon = PackedVector2Array(4.9591064e-05, -25, 21.65065, -12.5, 21.65065, 12.5, 4.9591064e-05, 25, -21.65065, 12.5, -21.65065, -12.5)
 metadata/_edit_lock_ = true
 
-[node name="hitboxes" type="Area2D" parent="."]
+[node name="hitboxes" type="Area2D" parent="Skeleton2D"]
+position = Vector2(6, -9)
 
-[node name="atackArea" type="CollisionPolygon2D" parent="hitboxes"]
+[node name="wall_probe" type="RayCast2D" parent="Skeleton2D/hitboxes"]
+rotation = -1.5707964
+target_position = Vector2(0, 300)
+
+[node name="atackArea" type="CollisionPolygon2D" parent="Skeleton2D/hitboxes"]
 position = Vector2(226, -157)
 polygon = PackedVector2Array(-69, -91, -66, 305, 292, 302, 442, 109, 293, -59)
 
@@ -1663,7 +1675,3 @@ offset_top = 52.0
 offset_right = 39.0
 offset_bottom = 75.0
 text = "flags"
-
-[node name="wall_probe" type="RayCast2D" parent="."]
-rotation = -1.5707964
-target_position = Vector2(0, 300)
