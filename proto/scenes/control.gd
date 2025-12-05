@@ -192,11 +192,11 @@ function addMsg(kind, text){
 
 async function callEmmysLLM(question){
         const apiUrl = 'https://api.openai.com/v1/chat/completions';
-        const apiKey = 'PON_AQUI_TU_API_KEY_OPENAI'; // remplaza con tu clave real antes de compilar
+        const apiKey = (typeof window !== 'undefined' && window.OPENAI_API_KEY) ? window.OPENAI_API_KEY : '';
         const cssNow = css.value;
 
         const body = {
-                model: 'gpt-3.5-turbo',
+                model: 'gpt-o-3-mini',
                 messages: [
                         {role: 'system', content: `Eres Emmys, guardiana CSS de un videojuego. Responde en tono aventurero, breve y con ejemplos. Color de firma ${persona.color}. Siempre usa el CSS actual que recibe para dar tips.`},
                         {role: 'user', content: `CSS actual:\n${cssNow}\n\nPregunta: ${question}`}
@@ -204,6 +204,10 @@ async function callEmmysLLM(question){
                 temperature: 0.6,
                 max_tokens: 180
         };
+
+        if(!apiKey){
+                throw new Error('Falta la clave OPENAI_API_KEY en window.OPENAI_API_KEY');
+        }
 
         const res = await fetch(apiUrl, {
                 method: 'POST',
@@ -305,7 +309,15 @@ function makeSprite(){
 </script>
 </body></html>
 """
-	web.call("load_html", html)
+        web.call("load_html", html)
+
+        # Inyecta la clave OPENAI desde el entorno del host (sin dejarla en el repositorio)
+        var api_key := OS.get_environment("OPENAI_API_KEY")
+        if api_key != "" and web.has_method("eval"):
+                # Escapa comillas simples para no romper el JS literal
+                var safe_key := api_key.replace("'", "\\'")
+                var inject := "window.OPENAI_API_KEY='" + safe_key + "';"
+                web.call_deferred("eval", inject)
 
 func _on_web_ipc_message(msg: String) -> void:
 	print("[WebOverlay] ipc_message: ", msg)
