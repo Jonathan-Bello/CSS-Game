@@ -253,7 +253,7 @@ tracks/19/keys = {
 }
 
 [sub_resource type="Animation" id="Animation_ooeqd"]
-resource_name = "atack"
+resource_name = "attack"
 
 [sub_resource type="Animation" id="Animation_gcpke"]
 
@@ -824,7 +824,7 @@ tracks/8/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gcpke"]
 _data = {
 &"RESET": SubResource("Animation_yncc2"),
-&"atack": SubResource("Animation_ooeqd"),
+&"attack": SubResource("Animation_ooeqd"),
 &"dash": SubResource("Animation_gcpke"),
 &"fall": SubResource("Animation_1hs1s"),
 &"idle": SubResource("Animation_1lfiw"),
@@ -1190,7 +1190,7 @@ remote_path = NodePath("../../../../../sprites/BrazoD")
 [node name="brazoI" type="Bone2D" parent="Skeleton2D/origen/cintura/torso"]
 position = Vector2(64, -110)
 rotation = -0.029809957
-scale = Vector2(0.99999344, 0.99999344)
+scale = Vector2(0.9999932, 0.9999932)
 rest = Transform2D(0.9995557, -0.029805543, 0.029805543, 0.9995557, 64, -110)
 auto_calculate_length_and_angle = false
 length = 50.0
@@ -1229,7 +1229,7 @@ position = Vector2(20, 32)
 
 [node name="Cabeza" type="Sprite2D" parent="Skeleton2D/sprites"]
 texture_filter = 1
-position = Vector2(4, -225)
+position = Vector2(11, -235)
 offset = Vector2(-10.577301, -63.24276)
 
 [node name="Cabeza" type="Node2D" parent="Skeleton2D/sprites/Cabeza"]
@@ -1307,9 +1307,9 @@ metadata/_edit_lock_ = true
 
 [node name="BrazoI" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
-position = Vector2(54, -171)
-rotation = -0.029809967
-scale = Vector2(0.99999344, 0.99999344)
+position = Vector2(61, -181)
+rotation = -0.029809957
+scale = Vector2(0.9999932, 0.9999932)
 offset = Vector2(-62, 184)
 
 [node name="BrazoI" type="Node2D" parent="Skeleton2D/sprites/BrazoI"]
@@ -1330,7 +1330,7 @@ polygon = PackedVector2Array(29.14795, 85.68, 7.852051, -85.68, -29.14795, -43.1
 metadata/_edit_lock_ = true
 
 [node name="Torso" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-10, -61)
+position = Vector2(-3, -71)
 offset = Vector2(-1, -72)
 
 [node name="Torso" type="Node2D" parent="Skeleton2D/sprites/Torso"]
@@ -1390,7 +1390,7 @@ polygon = PackedVector2Array(-1, -9.5, -14.5, -1, -1, 9.5, 14.5, -1)
 metadata/_edit_lock_ = true
 
 [node name="Cintura" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-6, 5)
+position = Vector2(1, -5)
 offset = Vector2(-5, -31)
 
 [node name="Cintura" type="Node2D" parent="Skeleton2D/sprites/Cintura"]
@@ -1424,8 +1424,7 @@ polygon = PackedVector2Array(-14.5, 34.75, -18.5, -34.75, -10.5, -34.75, 18.5, -
 metadata/_edit_lock_ = true
 
 [node name="PiernaI" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(28.999996, -44)
-rotation = -0.4815278
+position = Vector2(42, 14)
 scale = Vector2(0.9999997, 0.9999997)
 offset = Vector2(6, 125)
 
@@ -1473,8 +1472,7 @@ polygon = PackedVector2Array(-7.75, -72.75, 11.75, -77.25, -11.75, 77.25)
 metadata/_edit_lock_ = true
 
 [node name="PiernaD" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-28, 51)
-rotation = -0.4445583
+position = Vector2(-89, 17)
 scale = Vector2(0.9999992, 0.9999992)
 offset = Vector2(8, 126)
 
@@ -1577,8 +1575,7 @@ metadata/_edit_lock_ = true
 
 [node name="BrazoD" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
-position = Vector2(-85, -173)
-rotation = 2.2818723
+position = Vector2(-78, -183)
 scale = Vector2(0.9999998, 0.9999998)
 offset = Vector2(73, 193)
 
@@ -1600,7 +1597,7 @@ polygon = PackedVector2Array(-51.75, 117.2609, -3.0379982, -117.26091, 51.75, -7
 metadata/_edit_lock_ = true
 
 [node name="Hemis" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-1, -389)
+position = Vector2(6, -399)
 offset = Vector2(0, -50)
 
 [node name="Hemis" type="Node2D" parent="Skeleton2D/sprites/Hemis"]
