@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://gxol7n07h5vq"]
+
+[ext_resource type="Script" uid="uid://bkjmpmocdtafp" path="res://personaje/bala.gd" id="1_3koxv"]
+[ext_resource type="Texture2D" uid="uid://cajwcl06acbtq" path="res://prueba-sprites/scrible/PNG/Default/effect_blast.png" id="2_3koxv"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ogwtc"]
+radius = 19.026299
+
+[node name="bala" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 7
+contact_monitor = true
+max_contacts_reported = 1
+script = ExtResource("1_3koxv")
+
+[node name="EffectBlast" type="Sprite2D" parent="."]
+texture = ExtResource("2_3koxv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+light_mask = 4
+visibility_layer = 4
+shape = SubResource("CircleShape2D_ogwtc")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

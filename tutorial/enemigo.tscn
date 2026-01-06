@@ -1,0 +1,182 @@
+[gd_scene load_steps=9 format=3 uid="uid://bo6irkdxeu1a4"]
+
+[ext_resource type="Script" uid="uid://cgxnrikurl2bu" path="res://personaje/enemigo.gd" id="1_50qcy"]
+[ext_resource type="Texture2D" uid="uid://baca3gao30taf" path="res://prueba-sprites/scrible/PNG/Default/character_handRed.png" id="1_vwbip"]
+[ext_resource type="Texture2D" uid="uid://bc6tmjmdeldwi" path="res://prueba-sprites/scrible/PNG/Default/character_roundRed.png" id="2_50qcy"]
+[ext_resource type="Texture2D" uid="uid://cajwcl06acbtq" path="res://prueba-sprites/scrible/PNG/Default/effect_blast.png" id="3_payri"]
+
+[sub_resource type="Animation" id="Animation_50qcy"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CharacterRoundRed/CharacterHandRed:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(3, 23)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CharacterRoundRed/CharacterHandRed/EffectBlast:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CharacterRoundRed:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_opudj"]
+resource_name = "ataque"
+length = 1.5
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CharacterRoundRed:scale")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.9205679),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-1, 1), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CharacterRoundRed/CharacterHandRed:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.2, 0.9181954, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(19, 8), Vector2(-1.0051812, -43), Vector2(30.999998, 9)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CharacterRoundRed/CharacterHandRed/EffectBlast:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/3/type = "method"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(1.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"launch_barrel"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_vwbip"]
+resource_name = "reposo"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CharacterRoundRed/CharacterHandRed:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.46666667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-5, 15), Vector2(-5, 20)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CharacterRoundRed/CharacterHandRed/EffectBlast:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.06666667),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_payri"]
+_data = {
+&"RESET": SubResource("Animation_50qcy"),
+&"ataque": SubResource("Animation_opudj"),
+&"reposo": SubResource("Animation_vwbip")
+}
+
+[node name="Enemy" type="Node2D"]
+script = ExtResource("1_50qcy")
+
+[node name="CharacterRoundRed" type="Sprite2D" parent="."]
+position = Vector2(5, 15)
+texture = ExtResource("2_50qcy")
+
+[node name="CharacterHandRed" type="Sprite2D" parent="CharacterRoundRed"]
+position = Vector2(3, 23)
+texture = ExtResource("1_vwbip")
+
+[node name="EffectBlast" type="Sprite2D" parent="CharacterRoundRed/CharacterHandRed"]
+visible = false
+position = Vector2(22, 1)
+texture = ExtResource("3_payri")
+
+[node name="EffectBlast2" type="Sprite2D" parent="."]
+position = Vector2(-43, 22)
+texture = ExtResource("3_payri")
+
+[node name="EffectBlast3" type="Sprite2D" parent="."]
+position = Vector2(-82, 22)
+texture = ExtResource("3_payri")
+
+[node name="EffectBlast4" type="Sprite2D" parent="."]
+position = Vector2(-121, 22)
+texture = ExtResource("3_payri")
+
+[node name="EffectBlast5" type="Sprite2D" parent="."]
+position = Vector2(-102, -12)
+texture = ExtResource("3_payri")
+
+[node name="EffectBlast6" type="Sprite2D" parent="."]
+position = Vector2(-63, -8)
+texture = ExtResource("3_payri")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_payri")
+}
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

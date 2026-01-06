@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://htlj1eiwvo6p"]
+
+[ext_resource type="PackedScene" uid="uid://biqsowi6baybf" path="res://personaje/piso.tscn" id="1_cawl3"]
+
+[node name="MecanicaWeb" type="Node2D"]
+
+[node name="StaticBody2D" parent="." instance=ExtResource("1_cawl3")]
+position = Vector2(32, 612)
+
+[node name="StaticBody2D2" parent="." instance=ExtResource("1_cawl3")]
+position = Vector2(391, 612)
+
+[node name="StaticBody2D3" parent="." instance=ExtResource("1_cawl3")]
+position = Vector2(747, 612)
+
+[node name="StaticBody2D4" parent="." instance=ExtResource("1_cawl3")]
+position = Vector2(1101, 611)
+
+[node name="StaticBody2D5" parent="." instance=ExtResource("1_cawl3")]
+position = Vector2(-264, 259)
+
+[node name="StaticBody2D6" parent="." instance=ExtResource("1_cawl3")]
+position = Vector2(32, 318)
+rotation = 1.5707964
