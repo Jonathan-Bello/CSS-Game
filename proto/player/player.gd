@@ -115,6 +115,16 @@ extends CharacterBody2D
 @export_node_path("RayCast2D") var wall_probe_path: NodePath = ^"hitboxes/wall_probe"
 ## Área de ataque frontal.
 @export_node_path("Area2D") var attack_area_path: NodePath = ^"hitboxes/atackArea"
+## Hueso del brazo derecho para la pose de disparo.
+@export_node_path("Node2D") var shoot_arm_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
+## Punto de salida del disparo.
+@export_node_path("Node2D") var shoot_origin_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
+
+@export_group("Disparo CSS")
+@export var bullet_scene: PackedScene = preload("res://proto/scenes/css_bullet.tscn")
+@export var bullet_speed: float = 1300.0
+@export var bullet_damage: int = 1
+@export_multiline var bullet_css_text: String = "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
 
 @export_group("Debug — Labels (opcional)")
 @export_node_path("Label") var lbl_state_path: NodePath = ^"debug/lbl_state"
@@ -162,6 +172,8 @@ var lock_controls := false              # micro “hit-stop” al atacar
 @onready var gfx_root: Node2D = get_node_or_null(gfx_root_path)
 @onready var wall_probe: RayCast2D = get_node_or_null(wall_probe_path)
 @onready var attack_area: Area2D = get_node_or_null(attack_area_path)
+@onready var shoot_arm: Node2D = get_node_or_null(shoot_arm_path)
+@onready var shoot_origin: Node2D = get_node_or_null(shoot_origin_path)
 @onready var lbl_state: Label = get_node_or_null(lbl_state_path)
 @onready var lbl_vel: Label   = get_node_or_null(lbl_vel_path)
 @onready var lbl_flags: Label = get_node_or_null(lbl_flags_path)
@@ -175,6 +187,7 @@ func _ready() -> void:
 	if anim == null:       push_warning("AnimationPlayer no encontrado en '%s'." % anim_path)
 	if gfx_root == null:   push_warning("gfx_root no encontrado en '%s'." % gfx_root_path)
 	if wall_probe == null: push_warning("RayCast2D wall_probe no encontrado en '%s'." % wall_probe_path)
+	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
 	if attack_area:
 		attack_area.monitoring = false
 		attack_area.visible = false
@@ -438,6 +451,8 @@ func _attack(dir: Direction) -> void:
 	if dir == Direction.UP:   clip = &"attack_up"
 	if dir == Direction.DOWN: clip = &"attack_down"
 	_play_if_changed(clip, false)
+	_play_shoot_pose()
+	_spawn_css_bullet()
 
 	# Pequeño “hit-stop” opcional:
 	if ATTACK_KNOCK_PAUSE > 0.0:
@@ -451,6 +466,34 @@ func _end_attack() -> void:
 		attack_area.monitoring = false
 		attack_area.visible = false
 	state = State.FALL if not is_on_floor() else State.IDLE
+
+func _spawn_css_bullet() -> void:
+	if bullet_scene == null:
+		return
+	var bullet := bullet_scene.instantiate()
+	if bullet == null:
+		return
+
+	var spawn_pos := global_position
+	if shoot_origin:
+		spawn_pos = shoot_origin.global_position
+
+	bullet.global_position = spawn_pos
+	var facing := _facing_sign()
+	if bullet.has_method("setup_from_css"):
+		bullet.call("setup_from_css", bullet_css_text, facing, bullet_speed, bullet_damage)
+	elif "direction" in bullet:
+		bullet.direction = Vector2(float(facing), 0.0)
+
+	get_tree().current_scene.add_child(bullet)
+
+func _play_shoot_pose() -> void:
+	if shoot_arm == null:
+		return
+	var target_rotation := deg_to_rad(-35.0 * float(_facing_sign()))
+	var tw := create_tween()
+	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
+	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
 
 
 # ============================================================================
