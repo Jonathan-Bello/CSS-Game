@@ -1,5 +1,4 @@
 extends Node
-class_name CssUnlocks
 
 # Sistema de progreso de propiedades CSS desbloqueadas.
 # - Si una propiedad está bloqueada, sigue escribiéndose en el CSS

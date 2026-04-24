@@ -1,5 +1,4 @@
 extends Node
-class_name CssAffinity
 
 # -----------------------------------------------------------------------------
 # CssAffinity
@@ -91,7 +90,7 @@ static func normalize_color(raw_color: String) -> String:
 		return _normalize_hex(color_value)
 
 	if color_value.begins_with("rgb"):
-		var rgba := _parse_rgb_string(color_value)
+		var rgba: Variant = _parse_rgb_string(color_value)
 		if rgba == null:
 			return ""
 		return _to_hex_string(rgba)
