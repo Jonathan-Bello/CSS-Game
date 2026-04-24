@@ -199,7 +199,6 @@ func _ready() -> void:
 	if wall_probe == null: push_warning("RayCast2D wall_probe no encontrado en '%s'." % wall_probe_path)
 	if debug_show_raycast and wall_probe:
 		get_tree().debug_collisions_hint = true
-		wall_probe.debug_shape_custom_color = Color(1.0, 0.45, 0.15, 0.9)
 		wall_probe.force_raycast_update()
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
 	if attack_area:
@@ -567,7 +566,7 @@ func _compute_bullet_stats_from_profile() -> Dictionary:
 	var height := float(meta.get("h", bullet_balance_reference_size.y))
 	width = max(1.0, width)
 	height = max(1.0, height)
-	var damage_base := max(1, int(current_bullet_profile.get("damage_base", bullet_damage)))
+	var damage_base: int = max(1, int(current_bullet_profile.get("damage_base", bullet_damage)))
 	if current_bullet_profile.is_empty() and not _warned_missing_bullet_profile:
 		push_warning("[Player] No hay perfil de bala equipado. Se usará CSS por defecto.")
 		_warned_missing_bullet_profile = true
