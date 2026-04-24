@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=4 uid="uid://bqqdr6qwiergq"]
+[gd_scene load_steps=10 format=4 uid="uid://bqqdr6qwiergq"]
 
 [ext_resource type="Texture2D" uid="uid://ce44e01sh53dr" path="res://proto/tiileset.svg" id="1_ydl1v"]
 [ext_resource type="PackedScene" uid="uid://cn1bukpgco5dm" path="res://proto/player/player.tscn" id="2_74bkv"]
+[ext_resource type="PackedScene" uid="uid://bsrxd5ua1ihos" path="res://proto/scenes/css_bullet.tscn" id="3_fc8pn"]
 [ext_resource type="Script" uid="uid://b4ftisvqkc7l" path="res://proto/scenes/control.gd" id="3_ydl1v"]
 [ext_resource type="Script" uid="uid://bkx1q2umxh5yp" path="res://proto/scenes/arena2D.gd" id="4_ydl1v"]
 [ext_resource type="PackedScene" path="res://proto/scenes/css_robot_enemy.tscn" id="5_enemy"]
@@ -80,7 +81,48 @@ position = Vector2(908, -484.99994)
 scale = Vector2(0.35, 0.35)
 collision_layer = 3
 collision_mask = 3
+MAX_SPEED = 1000.0
+ACCEL_GROUND = 8000.0
+DECEL_GROUND = 9000.0
+ACCEL_AIR = 6000.0
+DECEL_AIR = 5000.0
+RUN_THRESHOLD = 10.0
+STICK_DEAD_ZONE = 0.5
+GRAVITY = 3800.0
+MAX_FALL_SPEED = 2800.0
+JUMP_VELOCITY = -1500.0
+COYOTE_TIME = 0.09
+JUMP_BUFFER_TIME = 0.12
+FALL_MULTIPLIER = 1.9
+LOW_JUMP_MULTIPLIER = 2.4
+FAST_FALL_MULTIPLIER = 2.6
+APEX_THRESHOLD = 120.0
+APEX_GRAVITY_SCALE = 0.85
+ENABLE_DOUBLE_JUMP = true
+DOUBLE_JUMP_VELOCITY = -1000.0
 DASH_SPEED = 3000.0
+DASH_UP_VELOCITY = -500.0
+DASH_TIME = 0.18
+DASH_COOLDOWN = 0.2
+WALL_SLIDE_GRAVITY = 900.0
+WALL_SLIDE_SPEED_MAX = 900.0
+WALL_JUMP_PUSH_TIME = 0.1
+WALL_JUMP_PUSH_FORCE = 1000.0
+WALL_STICK_TIME = 0.08
+WALL_COYOTE_TIME = 0.05
+ATTACK_TIME = 0.18
+ATTACK_KNOCK_PAUSE = 0.05
+gfx_root_path = NodePath("Skeleton2D")
+anim_path = NodePath("Skeleton2D/AnimationPlayer")
+shoot_arm_path = NodePath("Skeleton2D/origen/cintura/torso/brazoD")
+shoot_origin_path = NodePath("Skeleton2D/origen/cintura/torso/brazoD")
+bullet_scene = ExtResource("3_fc8pn")
+bullet_speed = 1300.0
+bullet_damage = 1
+bullet_css_text = "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
+lbl_state_path = NodePath("debug/lbl_state")
+lbl_vel_path = NodePath("debug/lbl_vel")
+lbl_flags_path = NodePath("debug/lbl_flags")
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 position = Vector2(357, 19)

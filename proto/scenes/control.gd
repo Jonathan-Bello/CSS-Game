@@ -24,8 +24,8 @@ func _ready() -> void:
 	web.set("transparent", true)
 	web.set("devtools", true)
 
-	if not web.is_connected("ipc_message", Callable(self, "_on_web_ipc_message")):
-		web.connect("ipc_message", Callable(self, "_on_web_ipc_message"))
+	if not web.is_connected("ipc_message", Callable(self , "_on_web_ipc_message")):
+		web.connect("ipc_message", Callable(self , "_on_web_ipc_message"))
 
 	_layout_and_sync()
 	print("[WebOverlay] READY")
@@ -482,6 +482,10 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 	json_file.flush()
 	last_bullet_profile_path = profile_path
 	print("[WebOverlay] Bullet guardada en %s" % profile_path)
+	print("[WebOverlay] profile(user://): %s" % profile_path)
+	print("[WebOverlay] profile(abs): %s" % ProjectSettings.globalize_path(profile_path))
+	print("[WebOverlay] image(user://): %s" % image_path)
+	print("[WebOverlay] image(abs): %s" % ProjectSettings.globalize_path(image_path))
 	_notify_player_to_equip_bullet(profile_path, profile)
 
 func _notify_player_to_equip_bullet(profile_path: String, profile: Dictionary) -> void:

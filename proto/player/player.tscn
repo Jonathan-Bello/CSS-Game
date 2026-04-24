@@ -1154,8 +1154,50 @@ script = ExtResource("3_t6f4j")
 collision_layer = 2
 collision_mask = 2
 script = ExtResource("1_7a6m1")
+MAX_SPEED = null
+ACCEL_GROUND = null
+DECEL_GROUND = null
+ACCEL_AIR = null
+DECEL_AIR = null
+RUN_THRESHOLD = null
+STICK_DEAD_ZONE = null
+GRAVITY = null
+MAX_FALL_SPEED = null
+JUMP_VELOCITY = null
+COYOTE_TIME = null
+JUMP_BUFFER_TIME = null
+FALL_MULTIPLIER = null
+LOW_JUMP_MULTIPLIER = null
+FAST_FALL_MULTIPLIER = null
+APEX_THRESHOLD = null
+APEX_GRAVITY_SCALE = null
+ENABLE_DOUBLE_JUMP = null
+DOUBLE_JUMP_VELOCITY = null
+DASH_SPEED = null
+DASH_UP_VELOCITY = null
+DASH_TIME = null
+DASH_COOLDOWN = null
+WALL_SLIDE_GRAVITY = null
+WALL_SLIDE_SPEED_MAX = null
+WALL_JUMP_PUSH_TIME = null
+WALL_JUMP_PUSH_FORCE = null
+WALL_STICK_TIME = null
+WALL_COYOTE_TIME = null
+ATTACK_TIME = null
+ATTACK_KNOCK_PAUSE = null
+gfx_root_path = null
+anim_path = null
 wall_probe_path = NodePath("Skeleton2D/hitboxes/wall_probe")
 attack_area_path = NodePath("Skeleton2D/hitboxes")
+shoot_arm_path = null
+shoot_origin_path = null
+bullet_scene = null
+bullet_speed = null
+bullet_damage = null
+bullet_css_text = null
+lbl_state_path = null
+lbl_vel_path = null
+lbl_flags_path = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_1lfiw")
@@ -1220,7 +1262,7 @@ remote_path = NodePath("../../../../../sprites/BrazoD")
 [node name="brazoI" type="Bone2D" parent="Skeleton2D/origen/cintura/torso"]
 position = Vector2(64, -110)
 rotation = -0.029809957
-scale = Vector2(0.99998987, 0.99998987)
+scale = Vector2(0.99998975, 0.99998975)
 rest = Transform2D(0.9995557, -0.029805543, 0.029805543, 0.9995557, 64, -110)
 auto_calculate_length_and_angle = false
 length = 50.0
@@ -1338,8 +1380,8 @@ metadata/_edit_lock_ = true
 [node name="BrazoI" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
 position = Vector2(61, -181)
-rotation = -0.02980996
-scale = Vector2(0.99998987, 0.99998987)
+rotation = -0.029809961
+scale = Vector2(0.99998975, 0.99998975)
 offset = Vector2(-62, 184)
 
 [node name="BrazoI" type="Node2D" parent="Skeleton2D/sprites/BrazoI"]
@@ -1469,7 +1511,6 @@ polygon = NodePath("Fill")
 curve = SubResource("Curve2D_7a6m1")
 update_curve_at_runtime = true
 arc_list = SubResource("Resource_t6f4j")
-metadata/_select_hint_ = true
 
 [node name="Fill" type="Polygon2D" parent="Skeleton2D/sprites/PiernaI/PiernaI/Path"]
 color = Color(0.11372549, 0.11764706, 0.16470589, 1)
@@ -1483,7 +1524,6 @@ polygon = NodePath("Fill")
 curve = SubResource("Curve2D_yera8")
 update_curve_at_runtime = true
 arc_list = SubResource("Resource_84u5l")
-metadata/_select_hint_ = true
 
 [node name="Fill" type="Polygon2D" parent="Skeleton2D/sprites/PiernaI/PiernaI/Path2"]
 color = Color(0.18039216, 0.1882353, 0.25882354, 1)

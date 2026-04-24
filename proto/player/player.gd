@@ -40,9 +40,9 @@ extends CharacterBody2D
 ## Desaceleración en suelo (fricción).
 @export var DECEL_GROUND: float = 9000.0
 ## Aceleración en aire.
-@export var ACCEL_AIR: float    = 6000.0
+@export var ACCEL_AIR: float = 6000.0
 ## Desaceleración en aire.
-@export var DECEL_AIR: float    = 5000.0
+@export var DECEL_AIR: float = 5000.0
 ## Umbral para considerar “corriendo” (para FSM/anims).
 @export var RUN_THRESHOLD: float = 10.0
 ## Zona muerta para sticks (como en el script que pasaste).
@@ -60,7 +60,7 @@ extends CharacterBody2D
 ## Buffer de entrada: si presionas salto un pelín antes de tocar el suelo.
 @export var JUMP_BUFFER_TIME: float = 0.12
 ## Caída más pesada que el ascenso.
-@export var FALL_MULTIPLIER: float     = 1.9
+@export var FALL_MULTIPLIER: float = 1.9
 ## Cortar salto al soltar botón.
 @export var LOW_JUMP_MULTIPLIER: float = 2.4
 ## Fast-fall al mantener abajo durante la caída.
@@ -134,46 +134,43 @@ extends CharacterBody2D
 var bullet_profile_path: String = ""
 var bullet_profile_data: Dictionary = {}
 
-var bullet_profile_path: String = ""
-var bullet_profile_data: Dictionary = {}
-
 @export_group("Debug — Labels (opcional)")
 @export_node_path("Label") var lbl_state_path: NodePath = ^"debug/lbl_state"
-@export_node_path("Label") var lbl_vel_path: NodePath   = ^"debug/lbl_vel"
+@export_node_path("Label") var lbl_vel_path: NodePath = ^"debug/lbl_vel"
 @export_node_path("Label") var lbl_flags_path: NodePath = ^"debug/lbl_flags"
 
 
 # ─────────────────────────────────────────────────────────
 # ESTADOS / ENUMS
 # ─────────────────────────────────────────────────────────
-enum State { IDLE, RUN, JUMP, FALL, DASH, WALL_SLIDE, ATTACK }
+enum State {IDLE, RUN, JUMP, FALL, DASH, WALL_SLIDE, ATTACK}
 var state: State = State.IDLE
-var current_anim: StringName = &""   # guarda el clip actual para evitar replays
+var current_anim: StringName = &"" # guarda el clip actual para evitar replays
 
 # Para futuros ataques dirigidos (UP/DOWN).
-enum Direction { FWD, UP, DOWN }
+enum Direction {FWD, UP, DOWN}
 
 
 # ─────────────────────────────────────────────────────────
 # TIMERS / FLAGS INTERNOS
 # ─────────────────────────────────────────────────────────
-var time_since_grounded := 0.0          # tiempo desde que dejamos el suelo
-var time_since_jump_pressed := 999.0    # para buffer de salto
-var can_double_jump := true             # si nos queda el 2º salto
+var time_since_grounded := 0.0 # tiempo desde que dejamos el suelo
+var time_since_jump_pressed := 999.0 # para buffer de salto
+var can_double_jump := true # si nos queda el 2º salto
 
 # Dash
 var dash_cooldown := 0.0
 var dash_timer := 0.0
 
 # Pared
-var wall_stick_timer := 0.0             # micro “pegajosidad”
-var wall_coyote_timer := 0.0            # ventana para saltar tras soltar pared
-var last_wall_dir := 0                  # -1 pared izq, +1 pared der (para wall coyote)
-var wall_jump_lock_timer := 0.0         # bloqueo de control tras wall jump
+var wall_stick_timer := 0.0 # micro “pegajosidad”
+var wall_coyote_timer := 0.0 # ventana para saltar tras soltar pared
+var last_wall_dir := 0 # -1 pared izq, +1 pared der (para wall coyote)
+var wall_jump_lock_timer := 0.0 # bloqueo de control tras wall jump
 
 # Ataque
 var attack_timer := 0.0
-var lock_controls := false              # micro “hit-stop” al atacar
+var lock_controls := false # micro “hit-stop” al atacar
 
 
 # ─────────────────────────────────────────────────────────
@@ -186,7 +183,7 @@ var lock_controls := false              # micro “hit-stop” al atacar
 @onready var shoot_arm: Node2D = get_node_or_null(shoot_arm_path)
 @onready var shoot_origin: Node2D = get_node_or_null(shoot_origin_path)
 @onready var lbl_state: Label = get_node_or_null(lbl_state_path)
-@onready var lbl_vel: Label   = get_node_or_null(lbl_vel_path)
+@onready var lbl_vel: Label = get_node_or_null(lbl_vel_path)
 @onready var lbl_flags: Label = get_node_or_null(lbl_flags_path)
 
 
@@ -195,8 +192,8 @@ var lock_controls := false              # micro “hit-stop” al atacar
 # ============================================================================
 func _ready() -> void:
 	# Consejos de wiring si algo falta:
-	if anim == null:       push_warning("AnimationPlayer no encontrado en '%s'." % anim_path)
-	if gfx_root == null:   push_warning("gfx_root no encontrado en '%s'." % gfx_root_path)
+	if anim == null: push_warning("AnimationPlayer no encontrado en '%s'." % anim_path)
+	if gfx_root == null: push_warning("gfx_root no encontrado en '%s'." % gfx_root_path)
 	if wall_probe == null: push_warning("RayCast2D wall_probe no encontrado en '%s'." % wall_probe_path)
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
 	if attack_area:
@@ -215,14 +212,14 @@ func _physics_process(delta: float) -> void:
 		time_since_grounded += delta
 
 	time_since_jump_pressed += delta
-	if dash_cooldown > 0.0:      dash_cooldown = max(0.0, dash_cooldown - delta)
+	if dash_cooldown > 0.0: dash_cooldown = max(0.0, dash_cooldown - delta)
 	if dash_timer > 0.0:
 		dash_timer = max(0.0, dash_timer - delta)
 		if dash_timer <= 0.0 and state == State.DASH:
-			state = State.FALL   # termina fase de dash
+			state = State.FALL # termina fase de dash
 
-	if wall_stick_timer > 0.0:   wall_stick_timer = max(0.0, wall_stick_timer - delta)
-	if wall_coyote_timer > 0.0:  wall_coyote_timer = max(0.0, wall_coyote_timer - delta)
+	if wall_stick_timer > 0.0: wall_stick_timer = max(0.0, wall_stick_timer - delta)
+	if wall_coyote_timer > 0.0: wall_coyote_timer = max(0.0, wall_coyote_timer - delta)
 	if wall_jump_lock_timer > 0.0: wall_jump_lock_timer = max(0.0, wall_jump_lock_timer - delta)
 
 	if attack_timer > 0.0:
@@ -314,7 +311,7 @@ func _handle_jump_buffer() -> void:
 
 	# “Coyote desde pared”: permite saltar tras soltar muro
 	if has_buffer and wall_coyote_timer > 0.0:
-		_wall_jump(last_wall_dir)  # usa la última dirección de pared tocada
+		_wall_jump(last_wall_dir) # usa la última dirección de pared tocada
 		time_since_jump_pressed = 999.0
 
 	# Doble salto en aire (si queda)
@@ -354,8 +351,8 @@ func _apply_gravity(delta: float, want_down: bool) -> void:
 		return
 
 	var g := GRAVITY
-	if velocity.y > 0.0: g *= FALL_MULTIPLIER      # caer más pesado
-	if want_down and velocity.y > 0.0: g *= FAST_FALL_MULTIPLIER  # fast-fall
+	if velocity.y > 0.0: g *= FALL_MULTIPLIER # caer más pesado
+	if want_down and velocity.y > 0.0: g *= FAST_FALL_MULTIPLIER # fast-fall
 	if abs(velocity.y) <= APEX_THRESHOLD: g *= APEX_GRAVITY_SCALE # “flotita”
 
 	velocity.y = min(velocity.y + g * delta, MAX_FALL_SPEED)
@@ -396,8 +393,8 @@ func _update_wall_slide_state(dir: float) -> void:
 		if state != State.WALL_SLIDE:
 			state = State.WALL_SLIDE
 			_play_if_changed(&"wall_slide", true)
-		last_wall_dir = _facing_sign()           # recordamos lado (+1 der, -1 izq)
-		wall_coyote_timer = WALL_COYOTE_TIME     # refrescamos mientras haya contacto
+		last_wall_dir = _facing_sign() # recordamos lado (+1 der, -1 izq)
+		wall_coyote_timer = WALL_COYOTE_TIME # refrescamos mientras haya contacto
 
 		# Wall jump directo desde el slide
 		if Input.is_action_just_pressed("jump"):
@@ -416,7 +413,7 @@ func _update_wall_slide_state(dir: float) -> void:
 
 ## Aplica el salto desde pared, empujando hacia afuera.
 func _wall_jump(wall_dir: int) -> void:
-	var push := -wall_dir                      # empuje hacia afuera
+	var push := -wall_dir # empuje hacia afuera
 	velocity.x = WALL_JUMP_PUSH_FORCE * push
 	velocity.y = JUMP_VELOCITY
 	wall_stick_timer = 0.0
@@ -450,16 +447,16 @@ func _attack(dir: Direction) -> void:
 				attack_area.rotation = 0.0
 			Direction.UP:
 				attack_area.scale.x = 1.0
-				attack_area.rotation = -PI/2
+				attack_area.rotation = - PI / 2
 			Direction.DOWN:
 				attack_area.scale.x = 1.0
-				attack_area.rotation = PI/2
+				attack_area.rotation = PI / 2
 
 		attack_area.monitoring = true
 		attack_area.visible = true
 
 	var clip := &"attack"
-	if dir == Direction.UP:   clip = &"attack_up"
+	if dir == Direction.UP: clip = &"attack_up"
 	if dir == Direction.DOWN: clip = &"attack_down"
 	_play_if_changed(clip, false)
 	_play_shoot_pose()
@@ -534,11 +531,26 @@ func equip_bullet_from_profile(profile_path_or_dict: Variant) -> void:
 	var profile_css := String(profile.get("css_text", ""))
 	if profile_css != "":
 		bullet_css_text = profile_css
-	print("[Player] Bullet equipada. profile=%s reglas=%d" % [
-		bullet_profile_path,
-		int(Array(profile.get("css_rules", [])).size())
+	var absolute_profile_path := ""
+	if bullet_profile_path != "":
+		absolute_profile_path = ProjectSettings.globalize_path(bullet_profile_path)
+	var image_path := String(profile.get("image_path", ""))
+	var absolute_image_path := ""
+	if image_path != "":
+		absolute_image_path = ProjectSettings.globalize_path(image_path)
+	var tuned_stats := _compute_bullet_stats_from_profile()
+	print("[Player] Bullet equipada. profile=%s image=%s reglas=%d speed=%.1f damage=%d" % [
+		absolute_profile_path,
+		absolute_image_path,
+		int(Array(profile.get("css_rules", [])).size()),
+		float(tuned_stats.get("speed", bullet_speed)),
+		int(tuned_stats.get("damage", bullet_damage))
 	])
-
+	print("[Player] Archivos bala -> profile(user://): %s | image(user://): %s" % [
+		bullet_profile_path,
+		image_path
+	])
+	
 func _load_json_dictionary(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return {}
@@ -550,6 +562,23 @@ func _load_json_dictionary(path: String) -> Dictionary:
 		return {}
 	return parsed
 
+func _compute_bullet_stats_from_profile() -> Dictionary:
+	var meta: Dictionary = bullet_profile_data.get("meta", {})
+	var width := float(meta.get("w", bullet_balance_reference_size.x))
+	var height := float(meta.get("h", bullet_balance_reference_size.y))
+	width = max(1.0, width)
+	height = max(1.0, height)
+
+	var reference_area: float = max(1.0, bullet_balance_reference_size.x * bullet_balance_reference_size.y)
+	var area_ratio: float = (width * height) / reference_area
+	var scale_ratio: float = sqrt(area_ratio)
+	var speed_factor: float = clamp(1.0 / scale_ratio, bullet_speed_min_factor, bullet_speed_max_factor)
+	var damage_factor: float = clamp(scale_ratio, bullet_damage_min_factor, bullet_damage_max_factor)
+
+	return {
+		"speed": bullet_speed * speed_factor,
+		"damage": max(1, int(round(float(bullet_damage) * damage_factor)))
+	}
 
 # ============================================================================
 # FSM básica (elige anim cuando no hay estado dominante)
@@ -574,20 +603,19 @@ func _update_state() -> void:
 	state = State.JUMP if velocity.y < 0.0 else State.FALL
 
 
-
 # ============================================================================
 # ANIMACIONES (AnimationPlayer)
 # ============================================================================
 func _update_animation() -> void:
 	if anim == null: return
 	match state:
-		State.IDLE:       _play_if_changed(&"idle", true)
-		State.RUN:        _play_if_changed(&"run", true)
-		State.JUMP:       _play_if_changed(&"jump", false)
-		State.FALL:       _play_if_changed(&"fall", false)
-		State.DASH:       _play_if_changed(&"dash", false)
+		State.IDLE: _play_if_changed(&"idle", true)
+		State.RUN: _play_if_changed(&"run", true)
+		State.JUMP: _play_if_changed(&"jump", false)
+		State.FALL: _play_if_changed(&"fall", false)
+		State.DASH: _play_if_changed(&"dash", false)
 		State.WALL_SLIDE: _play_if_changed(&"wall_slide", true)
-		State.ATTACK:     pass  # el clip ya se eligió en _attack()
+		State.ATTACK: pass # el clip ya se eligió en _attack()
 
 ## Reproduce una animación sólo si cambió (evita reinicios).
 func _play_if_changed(anim_name: StringName, loop: bool = true) -> void:
