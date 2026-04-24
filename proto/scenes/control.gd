@@ -230,14 +230,23 @@ svg{width:180px;height:180px}
 
 <script>
 const css = document.getElementById('css');
-const styleEl = document.getElementById('styleEl');
 const svg = document.getElementById('svg');
 const log = document.getElementById('log');
 const form = document.getElementById('chatForm');
 const msg = document.getElementById('msg');
 
-styleEl.textContent = css.value;
-css.addEventListener('input', ()=> styleEl.textContent = css.value);
+function getStyleEl(){
+  return document.getElementById('styleEl');
+}
+
+function applyCssToPreview(){
+  const liveStyle = getStyleEl();
+  if(!liveStyle) return;
+  liveStyle.textContent = css.value;
+}
+
+applyCssToPreview();
+css.addEventListener('input', applyCssToPreview);
 ipc.postMessage('html_loaded');
 
 function _sanitizeForPreviewSvg(raw){
@@ -275,10 +284,7 @@ function hydrateFromGodot(payload){
     }
   }
 
-  const liveStyle = document.getElementById('styleEl');
-  if(liveStyle){
-    liveStyle.textContent = css.value;
-  }
+  applyCssToPreview();
 }
 
 function exportState(){
@@ -395,7 +401,7 @@ function setTpl(kind){
 	inner = '<polygon id="shape" points="128,24 156,100 236,100 172,148 196,228 128,180 60,228 84,148 20,100 100,100"/>';
   }
   svg.innerHTML = '<defs><style id="styleEl"></style></defs>' + inner;
-  document.getElementById('styleEl').textContent = css.value;
+  applyCssToPreview();
 }
 
 function saveCSS(){
@@ -405,7 +411,10 @@ function saveCSS(){
 
 function makeSprite(){
   const clone = svg.cloneNode(true);
-  clone.querySelector('#styleEl').textContent = css.value;
+  const cloneStyle = clone.querySelector('#styleEl');
+  if(cloneStyle){
+    cloneStyle.textContent = css.value;
+  }
   const txt = new XMLSerializer().serializeToString(clone);
   const blob = new Blob([txt], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
