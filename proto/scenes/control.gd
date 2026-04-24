@@ -463,7 +463,6 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 
 	var profile := {
 		"image_path": image_path,
-		"image_path_global": ProjectSettings.globalize_path(image_path),
 		"meta": {
 			"w": int(meta.get("w", image.get_width())),
 			"h": int(meta.get("h", image.get_height()))
@@ -482,11 +481,7 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 	json_file.store_string(JSON.stringify(profile, "\t"))
 	json_file.flush()
 	last_bullet_profile_path = profile_path
-	print("[WebOverlay] Bullet guardada.")
-	print("[WebOverlay] profile(user://): %s" % profile_path)
-	print("[WebOverlay] profile(abs): %s" % ProjectSettings.globalize_path(profile_path))
-	print("[WebOverlay] image(user://): %s" % image_path)
-	print("[WebOverlay] image(abs): %s" % ProjectSettings.globalize_path(image_path))
+	print("[WebOverlay] Bullet guardada en %s" % profile_path)
 	_notify_player_to_equip_bullet(profile_path, profile)
 
 func _notify_player_to_equip_bullet(profile_path: String, profile: Dictionary) -> void:

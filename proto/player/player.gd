@@ -134,6 +134,9 @@ extends CharacterBody2D
 var bullet_profile_path: String = ""
 var bullet_profile_data: Dictionary = {}
 
+var bullet_profile_path: String = ""
+var bullet_profile_data: Dictionary = {}
+
 @export_group("Debug — Labels (opcional)")
 @export_node_path("Label") var lbl_state_path: NodePath = ^"debug/lbl_state"
 @export_node_path("Label") var lbl_vel_path: NodePath   = ^"debug/lbl_vel"
@@ -531,24 +534,9 @@ func equip_bullet_from_profile(profile_path_or_dict: Variant) -> void:
 	var profile_css := String(profile.get("css_text", ""))
 	if profile_css != "":
 		bullet_css_text = profile_css
-	var absolute_profile_path := ""
-	if bullet_profile_path != "":
-		absolute_profile_path = ProjectSettings.globalize_path(bullet_profile_path)
-	var image_path := String(profile.get("image_path", ""))
-	var absolute_image_path := ""
-	if image_path != "":
-		absolute_image_path = ProjectSettings.globalize_path(image_path)
-	var tuned_stats := _compute_bullet_stats_from_profile()
-	print("[Player] Bullet equipada. profile=%s image=%s reglas=%d speed=%.1f damage=%d" % [
-		absolute_profile_path,
-		absolute_image_path,
-		int(Array(profile.get("css_rules", [])).size()),
-		float(tuned_stats.get("speed", bullet_speed)),
-		int(tuned_stats.get("damage", bullet_damage))
-	])
-	print("[Player] Archivos bala -> profile(user://): %s | image(user://): %s" % [
+	print("[Player] Bullet equipada. profile=%s reglas=%d" % [
 		bullet_profile_path,
-		image_path
+		int(Array(profile.get("css_rules", [])).size())
 	])
 
 func _load_json_dictionary(path: String) -> Dictionary:
@@ -561,24 +549,6 @@ func _load_json_dictionary(path: String) -> Dictionary:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return {}
 	return parsed
-
-func _compute_bullet_stats_from_profile() -> Dictionary:
-	var meta: Dictionary = bullet_profile_data.get("meta", {})
-	var width := float(meta.get("w", bullet_balance_reference_size.x))
-	var height := float(meta.get("h", bullet_balance_reference_size.y))
-	width = max(1.0, width)
-	height = max(1.0, height)
-
-	var reference_area := max(1.0, bullet_balance_reference_size.x * bullet_balance_reference_size.y)
-	var area_ratio := (width * height) / reference_area
-	var scale_ratio := sqrt(area_ratio)
-	var speed_factor := clamp(1.0 / scale_ratio, bullet_speed_min_factor, bullet_speed_max_factor)
-	var damage_factor := clamp(scale_ratio, bullet_damage_min_factor, bullet_damage_max_factor)
-
-	return {
-		"speed": bullet_speed * speed_factor,
-		"damage": max(1, int(round(float(bullet_damage) * damage_factor)))
-	}
 
 
 # ============================================================================
