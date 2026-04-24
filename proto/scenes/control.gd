@@ -6,10 +6,9 @@ extends Control
 @export var window_size: Vector2 = Vector2(900, 600)
 @export var content_padding: int = 8
 
-const CssFollowerScript := preload("res://proto/scenes/CssFollower.gd")
-
 var last_css: String = ""
 var last_svg: String = ""
+var last_bullet_profile_path: String = ""
 
 signal overlay_opened
 signal overlay_closed
@@ -409,44 +408,118 @@ func _on_web_ipc_message(msg: String) -> void:
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
 			"save_css":
-				last_css = String(data.css)
-				last_svg = String(data.svg)
-				print("[WebOverlay] CSS guardado (memoria).")
+				_save_css_draft(data)
 			"css_sprite":
-				last_css = String(data.css)
-				last_svg = String(data.svg)
-				_create_sprite_from_data_url(String(data.data_url))
+				_save_and_equip_bullet(data)
 				close()
 
-func _create_sprite_from_data_url(data_url: String) -> void:
+func _save_css_draft(data: Dictionary) -> void:
+	last_css = String(data.get("css", ""))
+	last_svg = String(data.get("svg", ""))
+	print("[WebOverlay] CSS draft guardado (edición).")
+
+func _save_and_equip_bullet(data: Dictionary) -> void:
+	last_css = String(data.get("css", ""))
+	last_svg = String(data.get("svg", ""))
+
+	var data_url := String(data.get("data_url", ""))
 	var prefix := "base64,"
-	var i := data_url.find(prefix)
-	if i == -1:
-		push_warning("[WebOverlay] data_url inválida")
+	var base64_index := data_url.find(prefix)
+	if base64_index == -1:
+		push_warning("[WebOverlay] data_url inválida para bullet")
 		return
 
-	var b64 := data_url.substr(i + prefix.length())
-	var bytes: PackedByteArray = Marshalls.base64_to_raw(b64)
-
-	var img := Image.new()
-	if img.load_png_from_buffer(bytes) != OK:
-		push_warning("[WebOverlay] PNG inválido")
+	var bytes := Marshalls.base64_to_raw(data_url.substr(base64_index + prefix.length()))
+	if bytes.is_empty():
+		push_warning("[WebOverlay] PNG vacío para bullet")
 		return
 
-	var tex := ImageTexture.create_from_image(img)
+	var dir_path := "user://bullets"
+	var mkdir_err := DirAccess.make_dir_recursive_absolute(dir_path)
+	if mkdir_err != OK and mkdir_err != ERR_ALREADY_EXISTS:
+		push_warning("[WebOverlay] No se pudo crear directorio bullets. err=%s" % mkdir_err)
+		return
 
-	# Crear seguidor y pegarlo al jugador
-	var sprite := Sprite2D.new()
-	sprite.texture = tex
-	sprite.centered = true
-	sprite.position = Vector2(28, -32)
+	var image_path := "%s/bullet_current.png" % dir_path
+	var profile_path := "%s/bullet_current.json" % dir_path
 
+	var image := Image.new()
+	if image.load_png_from_buffer(bytes) != OK:
+		push_warning("[WebOverlay] PNG inválido para bullet")
+		return
+	if image.save_png(image_path) != OK:
+		push_warning("[WebOverlay] No se pudo guardar imagen bullet")
+		return
+
+	var meta: Dictionary = data.get("meta", {})
+	var now_iso := Time.get_datetime_string_from_system(true, true)
+	var existing_created_at := ""
+	if FileAccess.file_exists(profile_path):
+		var existing_data = _read_json_file(profile_path)
+		if typeof(existing_data) == TYPE_DICTIONARY:
+			existing_created_at = String(existing_data.get("created_at", ""))
+	if existing_created_at == "":
+		existing_created_at = now_iso
+
+	var profile := {
+		"image_path": image_path,
+		"image_path_global": ProjectSettings.globalize_path(image_path),
+		"meta": {
+			"w": int(meta.get("w", image.get_width())),
+			"h": int(meta.get("h", image.get_height()))
+		},
+		"css_text": last_css,
+		"css_rules": _extract_css_rules(last_css),
+		"svg_text": last_svg,
+		"created_at": existing_created_at,
+		"updated_at": now_iso
+	}
+
+	var json_file := FileAccess.open(profile_path, FileAccess.WRITE)
+	if json_file == null:
+		push_warning("[WebOverlay] No se pudo abrir perfil bullet para escritura")
+		return
+	json_file.store_string(JSON.stringify(profile, "\t"))
+	json_file.flush()
+	last_bullet_profile_path = profile_path
+	print("[WebOverlay] Bullet guardada.")
+	print("[WebOverlay] profile(user://): %s" % profile_path)
+	print("[WebOverlay] profile(abs): %s" % ProjectSettings.globalize_path(profile_path))
+	print("[WebOverlay] image(user://): %s" % image_path)
+	print("[WebOverlay] image(abs): %s" % ProjectSettings.globalize_path(image_path))
+	_notify_player_to_equip_bullet(profile_path, profile)
+
+func _notify_player_to_equip_bullet(profile_path: String, profile: Dictionary) -> void:
 	var player := get_tree().get_first_node_in_group("player")
-	if player:
-		var follower: Node2D = CssFollowerScript.new()
-		follower.name = "CssFollower_%d" % randi()
-		player.add_child(follower)
-		player.call_deferred("_ensure_follow_manager")
-		follower.add_child(sprite)
+	if player == null:
+		push_warning("[WebOverlay] No se encontró jugador para equipar bullet")
+		return
+	if player.has_method("equip_bullet_from_profile"):
+		player.call("equip_bullet_from_profile", profile_path)
+	elif player.has_method("equip_bullet_profile"):
+		player.call("equip_bullet_profile", profile)
 	else:
-		get_tree().current_scene.add_child(sprite)
+		push_warning("[WebOverlay] Jugador sin método equip_bullet_from_profile(profile_path_or_dict)")
+
+func _read_json_file(path: String) -> Variant:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return null
+	var text := file.get_as_text()
+	if text.strip_edges() == "":
+		return null
+	return JSON.parse_string(text)
+
+func _extract_css_rules(text: String) -> PackedStringArray:
+	var rules := PackedStringArray()
+	for chunk in text.split(";"):
+		var pair := chunk.strip_edges()
+		if pair == "":
+			continue
+		var idx := pair.find(":")
+		if idx == -1:
+			continue
+		var key := pair.substr(0, idx).strip_edges().to_lower()
+		if key != "":
+			rules.append(key)
+	return rules

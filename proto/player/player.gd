@@ -125,6 +125,14 @@ extends CharacterBody2D
 @export var bullet_speed: float = 1300.0
 @export var bullet_damage: int = 1
 @export_multiline var bullet_css_text: String = "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
+@export var bullet_balance_reference_size: Vector2 = Vector2(28, 16)
+@export var bullet_speed_min_factor: float = 0.55
+@export var bullet_speed_max_factor: float = 1.85
+@export var bullet_damage_min_factor: float = 0.6
+@export var bullet_damage_max_factor: float = 2.8
+
+var bullet_profile_path: String = ""
+var bullet_profile_data: Dictionary = {}
 
 @export_group("Debug — Labels (opcional)")
 @export_node_path("Label") var lbl_state_path: NodePath = ^"debug/lbl_state"
@@ -480,8 +488,14 @@ func _spawn_css_bullet() -> void:
 
 	bullet.global_position = spawn_pos
 	var facing := _facing_sign()
-	if bullet.has_method("setup_from_css"):
-		bullet.call("setup_from_css", bullet_css_text, facing, bullet_speed, bullet_damage)
+	var tuned_stats := _compute_bullet_stats_from_profile()
+	var tuned_speed: float = tuned_stats.get("speed", bullet_speed)
+	var tuned_damage: int = tuned_stats.get("damage", bullet_damage)
+
+	if not bullet_profile_data.is_empty() and bullet.has_method("setup_from_profile"):
+		bullet.call("setup_from_profile", bullet_profile_data, facing, tuned_speed, tuned_damage)
+	elif bullet.has_method("setup_from_css"):
+		bullet.call("setup_from_css", bullet_css_text, facing, tuned_speed, tuned_damage)
 	elif "direction" in bullet:
 		bullet.direction = Vector2(float(facing), 0.0)
 
@@ -494,6 +508,77 @@ func _play_shoot_pose() -> void:
 	var tw := create_tween()
 	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
 	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
+
+func equip_bullet_from_profile(profile_path_or_dict: Variant) -> void:
+	var profile := {}
+
+	if typeof(profile_path_or_dict) == TYPE_STRING:
+		var path := String(profile_path_or_dict)
+		bullet_profile_path = path
+		var loaded_profile := _load_json_dictionary(path)
+		if loaded_profile.is_empty():
+			push_warning("[Player] Perfil de bullet vacío o inválido: %s" % path)
+			return
+		profile = loaded_profile
+	elif typeof(profile_path_or_dict) == TYPE_DICTIONARY:
+		profile = profile_path_or_dict
+		bullet_profile_path = String(profile.get("profile_path", bullet_profile_path))
+	else:
+		push_warning("[Player] equip_bullet_from_profile recibió tipo no soportado")
+		return
+
+	bullet_profile_data = profile.duplicate(true)
+	var profile_css := String(profile.get("css_text", ""))
+	if profile_css != "":
+		bullet_css_text = profile_css
+	var absolute_profile_path := ""
+	if bullet_profile_path != "":
+		absolute_profile_path = ProjectSettings.globalize_path(bullet_profile_path)
+	var image_path := String(profile.get("image_path", ""))
+	var absolute_image_path := ""
+	if image_path != "":
+		absolute_image_path = ProjectSettings.globalize_path(image_path)
+	var tuned_stats := _compute_bullet_stats_from_profile()
+	print("[Player] Bullet equipada. profile=%s image=%s reglas=%d speed=%.1f damage=%d" % [
+		absolute_profile_path,
+		absolute_image_path,
+		int(Array(profile.get("css_rules", [])).size()),
+		float(tuned_stats.get("speed", bullet_speed)),
+		int(tuned_stats.get("damage", bullet_damage))
+	])
+	print("[Player] Archivos bala -> profile(user://): %s | image(user://): %s" % [
+		bullet_profile_path,
+		image_path
+	])
+
+func _load_json_dictionary(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	return parsed
+
+func _compute_bullet_stats_from_profile() -> Dictionary:
+	var meta: Dictionary = bullet_profile_data.get("meta", {})
+	var width := float(meta.get("w", bullet_balance_reference_size.x))
+	var height := float(meta.get("h", bullet_balance_reference_size.y))
+	width = max(1.0, width)
+	height = max(1.0, height)
+
+	var reference_area := max(1.0, bullet_balance_reference_size.x * bullet_balance_reference_size.y)
+	var area_ratio := (width * height) / reference_area
+	var scale_ratio := sqrt(area_ratio)
+	var speed_factor := clamp(1.0 / scale_ratio, bullet_speed_min_factor, bullet_speed_max_factor)
+	var damage_factor := clamp(scale_ratio, bullet_damage_min_factor, bullet_damage_max_factor)
+
+	return {
+		"speed": bullet_speed * speed_factor,
+		"damage": max(1, int(round(float(bullet_damage) * damage_factor)))
+	}
 
 
 # ============================================================================

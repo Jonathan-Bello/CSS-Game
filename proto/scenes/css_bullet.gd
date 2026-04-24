@@ -8,6 +8,8 @@ var speed: float = 1200.0
 var damage: int = 1
 var css_text: String = ""
 var css_rules: PackedStringArray = PackedStringArray()
+var texture_path: String = ""
+var texture_size: Vector2 = Vector2(28, 16)
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision: CollisionShape2D = $CollisionShape2D
@@ -16,7 +18,8 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	if css_rules.is_empty() and css_text != "":
 		css_rules = _extract_rules(css_text)
-	_update_visual_from_css(css_text)
+	if not _try_apply_texture_from_path(texture_path):
+		_update_visual_from_css(css_text)
 	var timer := get_tree().create_timer(lifetime)
 	timer.timeout.connect(queue_free)
 
@@ -29,6 +32,20 @@ func setup_from_css(new_css_text: String, facing: int, new_speed: float, new_dam
 	damage = new_damage
 	direction = Vector2(float(facing), 0.0)
 	css_rules = _extract_rules(css_text)
+	texture_path = ""
+
+func setup_from_profile(profile: Dictionary, facing: int, new_speed: float, new_damage: int) -> void:
+	css_text = String(profile.get("css_text", ""))
+	speed = new_speed
+	damage = new_damage
+	direction = Vector2(float(facing), 0.0)
+	css_rules = _extract_rules(css_text)
+	texture_path = String(profile.get("image_path", ""))
+	var meta: Dictionary = profile.get("meta", {})
+	texture_size = Vector2(
+		float(meta.get("w", 28)),
+		float(meta.get("h", 16))
+	)
 
 func _extract_rules(text: String) -> PackedStringArray:
 	var rules := PackedStringArray()
@@ -61,7 +78,36 @@ func _update_visual_from_css(text: String) -> void:
 	var tex := ImageTexture.create_from_image(img)
 	sprite.texture = tex
 	sprite.centered = true
-	collision.shape.size = Vector2(w, h)
+	_apply_collision_size(Vector2(w, h))
+
+func _try_apply_texture_from_path(path: String) -> bool:
+	if path == "":
+		return false
+	if not FileAccess.file_exists(path):
+		push_warning("[CssBullet] No existe textura de bala: %s" % path)
+		return false
+
+	var image := Image.new()
+	if image.load(path) != OK:
+		push_warning("[CssBullet] No se pudo cargar textura de bala: %s" % path)
+		return false
+
+	var tex := ImageTexture.create_from_image(image)
+	sprite.texture = tex
+	sprite.centered = true
+	var hitbox_size := texture_size
+	if hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0:
+		hitbox_size = Vector2(image.get_width(), image.get_height())
+	_apply_collision_size(hitbox_size)
+	return true
+
+func _apply_collision_size(size: Vector2) -> void:
+	if collision and collision.shape and collision.shape is RectangleShape2D:
+		var rect_shape := collision.shape as RectangleShape2D
+		rect_shape.size = Vector2(
+			clamp(size.x, 6.0, 512.0),
+			clamp(size.y, 6.0, 512.0)
+		)
 
 func _extract_rule_map(text: String) -> Dictionary:
 	var out := {}
