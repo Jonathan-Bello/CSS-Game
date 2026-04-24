@@ -171,6 +171,13 @@ func _load_editor_html() -> void:
   .main{display:grid;grid-template-columns:2fr 1fr;gap:12px;padding:8px;box-sizing:border-box;height:100%;min-height:0}
   .editor{display:grid;grid-template-rows:auto 1fr;gap:8px;min-height:0}
   textarea{width:100%;height:160px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:8px;box-sizing:border-box;padding:8px}
+  .locked-panel{background:#131a2d;border:1px solid #3a2333;border-radius:8px;padding:8px;max-height:150px;overflow:auto}
+  .locked-title{font-size:12px;color:#ff9ba6;margin:0 0 6px}
+  .locked-list{display:flex;flex-wrap:wrap;gap:6px}
+  .locked-chip{font-size:12px;padding:2px 6px;border-radius:999px;background:#3b1f2c;color:#ff5f73;border:1px solid #7d3142}
+  .code-hint{font-size:12px;color:#ffb4bf}
+  .css-preview{margin:0;background:#0a1120;border:1px solid #2a3450;border-radius:8px;padding:8px;color:#c4e1ff;max-height:170px;overflow:auto;white-space:pre-wrap}
+  .css-preview .locked-prop{color:#ff5f73;font-weight:700}
   .preview{display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#0f1b33,#0b1222);border:1px solid #243049;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.4)}
   svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
   .chat{display:grid;grid-template-rows:auto 1fr auto auto;gap:8px;background:#0b1222cc;border:1px solid #243049;border-radius:12px;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.35);min-height:0;max-height:100%}
@@ -207,6 +214,12 @@ func _load_editor_html() -> void:
 svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </textarea>
+		<p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
+		<div class="locked-panel">
+		  <p class="locked-title">Propiedades CSS bloqueadas (progreso)</p>
+		  <div class="locked-list" id="lockedList"></div>
+		</div>
+		<pre class="css-preview" id="cssPreview"></pre>
 
 		<div class="preview">
 		  <svg id="svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
@@ -234,6 +247,10 @@ const svg = document.getElementById('svg');
 const log = document.getElementById('log');
 const form = document.getElementById('chatForm');
 const msg = document.getElementById('msg');
+const lockedList = document.getElementById('lockedList');
+const cssPreview = document.getElementById('cssPreview');
+let unlockState = {};
+let allProperties = [];
 
 function getStyleEl(){
   return document.getElementById('styleEl');
@@ -243,11 +260,62 @@ function applyCssToPreview(){
   const liveStyle = getStyleEl();
   if(!liveStyle) return;
   liveStyle.textContent = css.value;
+  renderLockedInfo();
 }
 
 applyCssToPreview();
 css.addEventListener('input', applyCssToPreview);
 ipc.postMessage('html_loaded');
+
+function escapeHtml(raw){
+  if(typeof raw !== 'string') return '';
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getLockedPropertiesFromCss(text){
+  const found = [];
+  const seen = new Set();
+  const parts = String(text || '').split(';');
+  for(const rawChunk of parts){
+    const chunk = rawChunk.trim();
+    if(!chunk) continue;
+    const idx = chunk.indexOf(':');
+    if(idx === -1) continue;
+    let key = chunk.slice(0, idx).trim().toLowerCase();
+    if(key === 'background') key = 'background-color';
+    if(!key) continue;
+    const enabled = Boolean(unlockState[key]);
+    if(!enabled && !seen.has(key)){
+      seen.add(key);
+      found.push(key);
+    }
+  }
+  return found;
+}
+
+function renderLockedInfo(){
+  const locked = getLockedPropertiesFromCss(css.value);
+  if(lockedList){
+    if(!locked.length){
+      lockedList.innerHTML = '<span style=\"color:#88ffb0;font-size:12px\">Todo lo escrito está desbloqueado ✨</span>';
+    }else{
+      lockedList.innerHTML = locked.map((p)=>`<span class=\"locked-chip\">${escapeHtml(p)}</span>`).join('');
+    }
+  }
+  if(cssPreview){
+    const previewText = escapeHtml(css.value).replace(/([a-zA-Z-]+)[ \t]*:/g, (match, prop)=>{
+      const normalized = prop.toLowerCase() === 'background' ? 'background-color' : prop.toLowerCase();
+      if(!unlockState[normalized]){
+        return `<span class=\"locked-prop\">${escapeHtml(prop)}</span>:`;
+      }
+      return `${escapeHtml(prop)}:`;
+    });
+    cssPreview.innerHTML = previewText;
+  }
+}
 
 function _sanitizeForPreviewSvg(raw){
   if(typeof raw !== 'string') return '';
@@ -263,6 +331,8 @@ function hydrateFromGodot(payload){
   if(!payload || typeof payload !== 'object') return;
   const nextCss = typeof payload.css_text === 'string' ? payload.css_text : '';
   const nextSvgText = typeof payload.svg_text === 'string' ? payload.svg_text : '';
+  unlockState = (payload.unlock_state && typeof payload.unlock_state === 'object') ? payload.unlock_state : unlockState;
+  allProperties = Array.isArray(payload.all_properties) ? payload.all_properties : allProperties;
 
   if(nextCss){
     css.value = nextCss;
@@ -473,7 +543,7 @@ func _on_web_ipc_message(msg: String) -> void:
 		push_warning("[WebOverlay] Error rasterizando SVG")
 		return
 
-	var data = JSON.parse_string(msg)
+	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
 			"save_css":
@@ -530,6 +600,8 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 	if existing_created_at == "":
 		existing_created_at = now_iso
 
+	var normalized_properties: Dictionary = _parse_relevant_properties_from_singleton(last_css)
+	var locked_properties: PackedStringArray = _get_locked_properties_from_singleton(last_css)
 	var profile := {
 		"sprite_path": image_path,
 		"image_path": image_path,
@@ -539,6 +611,8 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 		},
 		"css_text": last_css,
 		"css_rules": _extract_css_rules(last_css),
+		"css_properties": normalized_properties,
+		"css_locked_properties": locked_properties,
 		"css_properties_used": _extract_css_rules(last_css),
 		"damage_base": 1,
 		"svg_text": last_svg,
@@ -583,21 +657,30 @@ func _read_json_file(path: String) -> Variant:
 	return JSON.parse_string(text)
 
 func _read_bullet_hydration_payload() -> Dictionary:
+	var unlock_state: Dictionary = _get_unlock_state_from_singleton()
+	var all_properties: PackedStringArray = _get_all_properties_from_singleton()
+	var base_payload := {
+		"unlock_state": unlock_state,
+		"all_properties": all_properties
+	}
 	var profile_path := "user://bullets/bullet_current.json"
 	if not FileAccess.file_exists(profile_path):
-		return {}
+		return base_payload
 	var raw: Variant = _read_json_file(profile_path)
 	if typeof(raw) != TYPE_DICTIONARY:
-		return {}
+		return base_payload
 	var data: Dictionary = raw
 	var css_text := String(data.get("css_text", ""))
 	var svg_text := String(data.get("svg_text", ""))
 	if css_text == "" and svg_text == "":
-		return {}
-	return {
+		return base_payload
+	var out := {
 		"css_text": css_text,
-		"svg_text": svg_text
+		"svg_text": svg_text,
+		"unlock_state": unlock_state,
+		"all_properties": all_properties
 	}
+	return out
 
 func _hydrate_web_editor(payload: Dictionary) -> void:
 	if payload.is_empty() or not web.has_method("eval"):
@@ -618,3 +701,45 @@ func _extract_css_rules(text: String) -> PackedStringArray:
 		if key != "":
 			rules.append(key)
 	return rules
+
+func _get_css_affinity_singleton() -> Node:
+	return get_tree().root.get_node_or_null("CssAffinity")
+
+func _get_css_unlocks_singleton() -> Node:
+	return get_tree().root.get_node_or_null("CssUnlocks")
+
+func _parse_relevant_properties_from_singleton(css_text: String) -> Dictionary:
+	var singleton := _get_css_affinity_singleton()
+	if singleton != null and singleton.has_method("parse_relevant_properties"):
+		var parsed: Variant = singleton.call("parse_relevant_properties", css_text)
+		if typeof(parsed) == TYPE_DICTIONARY:
+			return parsed
+	return {}
+
+func _get_locked_properties_from_singleton(css_text: String) -> PackedStringArray:
+	var singleton := _get_css_unlocks_singleton()
+	if singleton != null and singleton.has_method("get_locked_properties_from_css"):
+		var locked: Variant = singleton.call("get_locked_properties_from_css", css_text)
+		if locked is PackedStringArray:
+			return locked
+		if locked is Array:
+			return PackedStringArray(locked)
+	return PackedStringArray()
+
+func _get_unlock_state_from_singleton() -> Dictionary:
+	var singleton := _get_css_unlocks_singleton()
+	if singleton != null and singleton.has_method("get_unlock_state"):
+		var state: Variant = singleton.call("get_unlock_state")
+		if typeof(state) == TYPE_DICTIONARY:
+			return state
+	return {}
+
+func _get_all_properties_from_singleton() -> PackedStringArray:
+	var singleton := _get_css_unlocks_singleton()
+	if singleton != null and singleton.has_method("get_all_properties"):
+		var all_props: Variant = singleton.call("get_all_properties")
+		if all_props is PackedStringArray:
+			return all_props
+		if all_props is Array:
+			return PackedStringArray(all_props)
+	return PackedStringArray()
