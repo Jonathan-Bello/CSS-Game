@@ -126,7 +126,7 @@ static func compute_damage(bullet_profile: Dictionary, target_affinity: Dictiona
 	for raw_prop in enemy_properties.keys():
 		var prop := _normalize_property_name(String(raw_prop))
 		# Si la propiedad no está desbloqueada para el jugador, no da bonus.
-		if not CssUnlocks.is_property_unlocked(prop):
+		if not _is_property_unlocked(prop):
 			continue
 		if not bullet_properties.has(prop):
 			continue
@@ -220,3 +220,14 @@ static func _to_hex_string(color: Color) -> String:
 		int(round(color.g * 255.0)),
 		int(round(color.b * 255.0))
 	]
+
+static func _is_property_unlocked(prop: String) -> bool:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return true
+	var unlocks := tree.root.get_node_or_null("CssUnlocks")
+	if unlocks == null:
+		return true
+	if unlocks.has_method("is_property_unlocked"):
+		return bool(unlocks.call("is_property_unlocked", prop))
+	return true

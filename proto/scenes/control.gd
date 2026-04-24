@@ -543,7 +543,7 @@ func _on_web_ipc_message(msg: String) -> void:
 		push_warning("[WebOverlay] Error rasterizando SVG")
 		return
 
-	var data = JSON.parse_string(msg)
+	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
 			"save_css":
@@ -600,8 +600,8 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 	if existing_created_at == "":
 		existing_created_at = now_iso
 
-	var normalized_properties := CssAffinity.parse_relevant_properties(last_css)
-	var locked_properties := CssUnlocks.get_locked_properties_from_css(last_css)
+	var normalized_properties: Dictionary = _parse_relevant_properties_from_singleton(last_css)
+	var locked_properties: PackedStringArray = _get_locked_properties_from_singleton(last_css)
 	var profile := {
 		"sprite_path": image_path,
 		"image_path": image_path,
@@ -657,9 +657,11 @@ func _read_json_file(path: String) -> Variant:
 	return JSON.parse_string(text)
 
 func _read_bullet_hydration_payload() -> Dictionary:
+	var unlock_state: Dictionary = _get_unlock_state_from_singleton()
+	var all_properties: PackedStringArray = _get_all_properties_from_singleton()
 	var base_payload := {
-		"unlock_state": CssUnlocks.get_unlock_state(),
-		"all_properties": CssUnlocks.get_all_properties()
+		"unlock_state": unlock_state,
+		"all_properties": all_properties
 	}
 	var profile_path := "user://bullets/bullet_current.json"
 	if not FileAccess.file_exists(profile_path):
@@ -675,8 +677,8 @@ func _read_bullet_hydration_payload() -> Dictionary:
 	var out := {
 		"css_text": css_text,
 		"svg_text": svg_text,
-		"unlock_state": CssUnlocks.get_unlock_state(),
-		"all_properties": CssUnlocks.get_all_properties()
+		"unlock_state": unlock_state,
+		"all_properties": all_properties
 	}
 	return out
 
@@ -699,3 +701,45 @@ func _extract_css_rules(text: String) -> PackedStringArray:
 		if key != "":
 			rules.append(key)
 	return rules
+
+func _get_css_affinity_singleton() -> Node:
+	return get_tree().root.get_node_or_null("CssAffinity")
+
+func _get_css_unlocks_singleton() -> Node:
+	return get_tree().root.get_node_or_null("CssUnlocks")
+
+func _parse_relevant_properties_from_singleton(css_text: String) -> Dictionary:
+	var singleton := _get_css_affinity_singleton()
+	if singleton != null and singleton.has_method("parse_relevant_properties"):
+		var parsed: Variant = singleton.call("parse_relevant_properties", css_text)
+		if typeof(parsed) == TYPE_DICTIONARY:
+			return parsed
+	return {}
+
+func _get_locked_properties_from_singleton(css_text: String) -> PackedStringArray:
+	var singleton := _get_css_unlocks_singleton()
+	if singleton != null and singleton.has_method("get_locked_properties_from_css"):
+		var locked: Variant = singleton.call("get_locked_properties_from_css", css_text)
+		if locked is PackedStringArray:
+			return locked
+		if locked is Array:
+			return PackedStringArray(locked)
+	return PackedStringArray()
+
+func _get_unlock_state_from_singleton() -> Dictionary:
+	var singleton := _get_css_unlocks_singleton()
+	if singleton != null and singleton.has_method("get_unlock_state"):
+		var state: Variant = singleton.call("get_unlock_state")
+		if typeof(state) == TYPE_DICTIONARY:
+			return state
+	return {}
+
+func _get_all_properties_from_singleton() -> PackedStringArray:
+	var singleton := _get_css_unlocks_singleton()
+	if singleton != null and singleton.has_method("get_all_properties"):
+		var all_props: Variant = singleton.call("get_all_properties")
+		if all_props is PackedStringArray:
+			return all_props
+		if all_props is Array:
+			return PackedStringArray(all_props)
+	return PackedStringArray()

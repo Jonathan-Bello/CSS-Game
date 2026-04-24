@@ -6,7 +6,7 @@ extends Node
 # - El estado se persiste en user://progress/css_unlocks.json
 
 const SAVE_PATH := "user://progress/css_unlocks.json"
-const MAIN_PROPERTIES := [
+var MAIN_PROPERTIES: PackedStringArray = PackedStringArray([
 	"background",
 	"background-color",
 	"color",
@@ -21,7 +21,7 @@ const MAIN_PROPERTIES := [
 	"opacity",
 	"transform",
 	"filter"
-]
+])
 
 # Propiedades mínimas desbloqueadas al iniciar una partida nueva.
 const DEFAULT_UNLOCKED := {
@@ -38,7 +38,7 @@ func _ready() -> void:
 	_load_state()
 
 func get_all_properties() -> PackedStringArray:
-	return PackedStringArray(MAIN_PROPERTIES.duplicate())
+	return MAIN_PROPERTIES.duplicate()
 
 func get_unlock_state() -> Dictionary:
 	return _unlock_state.duplicate(true)
