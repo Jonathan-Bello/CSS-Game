@@ -573,7 +573,7 @@ func _read_bullet_hydration_payload() -> Dictionary:
 	var profile_path := "user://bullets/bullet_current.json"
 	if not FileAccess.file_exists(profile_path):
 		return {}
-	var raw := _read_json_file(profile_path)
+	var raw: Variant = _read_json_file(profile_path)
 	if typeof(raw) != TYPE_DICTIONARY:
 		return {}
 	var data: Dictionary = raw
