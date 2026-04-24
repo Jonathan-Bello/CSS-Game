@@ -129,6 +129,12 @@ extends CharacterBody2D
 @export var bullet_speed_max_factor: float = 1.85
 @export var bullet_damage_min_factor: float = 0.6
 @export var bullet_damage_max_factor: float = 2.8
+# Cadencia base y límites por escala de bala:
+# - bala pequeña => cadence menor (dispara más seguido)
+# - bala grande  => cadence mayor (dispara más lento)
+@export var bullet_cadence_base: float = 0.18
+@export var bullet_cadence_min_factor: float = 0.45
+@export var bullet_cadence_max_factor: float = 2.0
 @export var debug_show_raycast: bool = true
 
 var bullet_profile_path: String = ""
@@ -172,6 +178,8 @@ var wall_jump_lock_timer := 0.0 # bloqueo de control tras wall jump
 
 # Ataque
 var attack_timer := 0.0
+# Cooldown entre disparos/cadencia real (calculada por tamaño de bala).
+var attack_cooldown_timer := 0.0
 var lock_controls := false # micro “hit-stop” al atacar
 
 
@@ -231,6 +239,9 @@ func _physics_process(delta: float) -> void:
 		attack_timer = max(0.0, attack_timer - delta)
 		if attack_timer <= 0.0:
 			_end_attack()
+
+	if attack_cooldown_timer > 0.0:
+		attack_cooldown_timer = max(0.0, attack_cooldown_timer - delta)
 
 	# 2) Entrada del jugador
 	var raw_dir := Input.get_axis("move_left", "move_right")
@@ -432,7 +443,8 @@ func _wall_jump(wall_dir: int) -> void:
 # ATAQUE (frontal) — hooks listos para UP/DOWN
 # ============================================================================
 func _handle_attack_input() -> void:
-	if Input.is_action_just_pressed("attack") and state != State.ATTACK and state != State.DASH:
+	# Evita disparar si aún no vence la cadencia dinámica.
+	if Input.is_action_just_pressed("attack") and state != State.ATTACK and state != State.DASH and attack_cooldown_timer <= 0.0:
 		# Para futuros ataques dirigidos:
 		# if Input.is_action_pressed("move_up"):    _attack(Direction.UP)
 		# elif Input.is_action_pressed("move_down"): _attack(Direction.DOWN)
@@ -465,7 +477,11 @@ func _attack(dir: Direction) -> void:
 	if dir == Direction.DOWN: clip = &"attack_down"
 	_play_if_changed(clip, false)
 	_play_shoot_pose()
-	_spawn_css_bullet()
+	# Se calculan stats una sola vez por disparo para consistencia de velocidad,
+	# daño y cadencia de esa bala.
+	var tuned_stats := _compute_bullet_stats_from_profile()
+	attack_cooldown_timer = float(tuned_stats.get("cadence", bullet_cadence_base))
+	_spawn_css_bullet(tuned_stats)
 
 	# Pequeño “hit-stop” opcional:
 	if ATTACK_KNOCK_PAUSE > 0.0:
@@ -480,7 +496,7 @@ func _end_attack() -> void:
 		attack_area.visible = false
 	state = State.FALL if not is_on_floor() else State.IDLE
 
-func _spawn_css_bullet() -> void:
+func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 	if bullet_scene == null:
 		return
 	var bullet := bullet_scene.instantiate()
@@ -493,7 +509,10 @@ func _spawn_css_bullet() -> void:
 
 	bullet.global_position = spawn_pos
 	var facing := _facing_sign()
-	var tuned_stats := _compute_bullet_stats_from_profile()
+	var tuned_stats := precomputed_stats
+	if tuned_stats.is_empty():
+		# Fallback por seguridad si no nos pasaron stats precalculados.
+		tuned_stats = _compute_bullet_stats_from_profile()
 	var tuned_speed: float = tuned_stats.get("speed", bullet_speed)
 	var tuned_damage: int = tuned_stats.get("damage", bullet_damage)
 
@@ -561,6 +580,7 @@ func _load_json_dictionary(path: String) -> Dictionary:
 	return parsed
 
 func _compute_bullet_stats_from_profile() -> Dictionary:
+	# Lee tamaño objetivo del profile. El área define el "peso" de la bala.
 	var meta: Dictionary = current_bullet_profile.get("meta", {})
 	var width := float(meta.get("w", bullet_balance_reference_size.x))
 	var height := float(meta.get("h", bullet_balance_reference_size.y))
@@ -574,12 +594,17 @@ func _compute_bullet_stats_from_profile() -> Dictionary:
 	var reference_area: float = max(1.0, bullet_balance_reference_size.x * bullet_balance_reference_size.y)
 	var area_ratio: float = (width * height) / reference_area
 	var scale_ratio: float = sqrt(area_ratio)
+	# Bala pequeña: mayor velocidad. Bala grande: menor velocidad.
 	var speed_factor: float = clamp(1.0 / scale_ratio, bullet_speed_min_factor, bullet_speed_max_factor)
+	# Bala pequeña: menos daño. Bala grande: más daño.
 	var damage_factor: float = clamp(scale_ratio, bullet_damage_min_factor, bullet_damage_max_factor)
+	# Bala pequeña: menor cooldown (más cadencia). Bala grande: mayor cooldown.
+	var cadence_factor: float = clamp(scale_ratio, bullet_cadence_min_factor, bullet_cadence_max_factor)
 
 	return {
 		"speed": bullet_speed * speed_factor,
-		"damage": max(1, int(round(float(damage_base) * damage_factor)))
+		"damage": max(1, int(round(float(damage_base) * damage_factor))),
+		"cadence": max(0.04, bullet_cadence_base * cadence_factor)
 	}
 
 func _get_active_bullet_css_text() -> String:
