@@ -125,6 +125,14 @@ extends CharacterBody2D
 @export var bullet_speed: float = 1300.0
 @export var bullet_damage: int = 1
 @export_multiline var bullet_css_text: String = "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
+@export var bullet_balance_reference_size: Vector2 = Vector2(28, 16)
+@export var bullet_speed_min_factor: float = 0.55
+@export var bullet_speed_max_factor: float = 1.85
+@export var bullet_damage_min_factor: float = 0.6
+@export var bullet_damage_max_factor: float = 2.8
+
+var bullet_profile_path: String = ""
+var bullet_profile_data: Dictionary = {}
 
 var bullet_profile_path: String = ""
 var bullet_profile_data: Dictionary = {}
@@ -483,8 +491,14 @@ func _spawn_css_bullet() -> void:
 
 	bullet.global_position = spawn_pos
 	var facing := _facing_sign()
-	if bullet.has_method("setup_from_css"):
-		bullet.call("setup_from_css", bullet_css_text, facing, bullet_speed, bullet_damage)
+	var tuned_stats := _compute_bullet_stats_from_profile()
+	var tuned_speed: float = tuned_stats.get("speed", bullet_speed)
+	var tuned_damage: int = tuned_stats.get("damage", bullet_damage)
+
+	if not bullet_profile_data.is_empty() and bullet.has_method("setup_from_profile"):
+		bullet.call("setup_from_profile", bullet_profile_data, facing, tuned_speed, tuned_damage)
+	elif bullet.has_method("setup_from_css"):
+		bullet.call("setup_from_css", bullet_css_text, facing, tuned_speed, tuned_damage)
 	elif "direction" in bullet:
 		bullet.direction = Vector2(float(facing), 0.0)
 
