@@ -126,6 +126,9 @@ extends CharacterBody2D
 @export var bullet_damage: int = 1
 @export_multiline var bullet_css_text: String = "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
 
+var bullet_profile_path: String = ""
+var bullet_profile_data: Dictionary = {}
+
 @export_group("Debug — Labels (opcional)")
 @export_node_path("Label") var lbl_state_path: NodePath = ^"debug/lbl_state"
 @export_node_path("Label") var lbl_vel_path: NodePath   = ^"debug/lbl_vel"
@@ -494,6 +497,44 @@ func _play_shoot_pose() -> void:
 	var tw := create_tween()
 	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
 	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
+
+func equip_bullet_from_profile(profile_path_or_dict: Variant) -> void:
+	var profile := {}
+
+	if typeof(profile_path_or_dict) == TYPE_STRING:
+		var path := String(profile_path_or_dict)
+		bullet_profile_path = path
+		var loaded_profile := _load_json_dictionary(path)
+		if loaded_profile.is_empty():
+			push_warning("[Player] Perfil de bullet vacío o inválido: %s" % path)
+			return
+		profile = loaded_profile
+	elif typeof(profile_path_or_dict) == TYPE_DICTIONARY:
+		profile = profile_path_or_dict
+		bullet_profile_path = String(profile.get("profile_path", bullet_profile_path))
+	else:
+		push_warning("[Player] equip_bullet_from_profile recibió tipo no soportado")
+		return
+
+	bullet_profile_data = profile.duplicate(true)
+	var profile_css := String(profile.get("css_text", ""))
+	if profile_css != "":
+		bullet_css_text = profile_css
+	print("[Player] Bullet equipada. profile=%s reglas=%d" % [
+		bullet_profile_path,
+		int(Array(profile.get("css_rules", [])).size())
+	])
+
+func _load_json_dictionary(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	return parsed
 
 
 # ============================================================================
