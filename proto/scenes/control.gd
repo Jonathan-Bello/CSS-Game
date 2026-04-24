@@ -9,6 +9,7 @@ extends Control
 var last_css: String = ""
 var last_svg: String = ""
 var last_bullet_profile_path: String = ""
+var _web_hydration_payload: Dictionary = {}
 
 signal overlay_opened
 signal overlay_closed
@@ -156,6 +157,7 @@ func _inject_window_var(var_name: String, value: String) -> void:
 # HTML LOADER
 # -----------------------------
 func _load_editor_html() -> void:
+	_web_hydration_payload = _read_bullet_hydration_payload()
 	var html := """
 <!doctype html>
 <html><head><meta charset="utf-8"/>
@@ -228,15 +230,69 @@ svg{width:180px;height:180px}
 
 <script>
 const css = document.getElementById('css');
-const styleEl = document.getElementById('styleEl');
 const svg = document.getElementById('svg');
 const log = document.getElementById('log');
 const form = document.getElementById('chatForm');
 const msg = document.getElementById('msg');
 
-styleEl.textContent = css.value;
-css.addEventListener('input', ()=> styleEl.textContent = css.value);
+function getStyleEl(){
+  return document.getElementById('styleEl');
+}
+
+function applyCssToPreview(){
+  const liveStyle = getStyleEl();
+  if(!liveStyle) return;
+  liveStyle.textContent = css.value;
+}
+
+applyCssToPreview();
+css.addEventListener('input', applyCssToPreview);
 ipc.postMessage('html_loaded');
+
+function _sanitizeForPreviewSvg(raw){
+  if(typeof raw !== 'string') return '';
+  return raw.replace(/<script[\\s\\S]*?>[\\s\\S]*?<\\/script>/gi, '');
+}
+
+function _extractShapeNode(nextSvg){
+  if(!nextSvg) return null;
+  return nextSvg.querySelector('#shape') || nextSvg.querySelector('rect,circle,ellipse,path,polygon,polyline,g');
+}
+
+function hydrateFromGodot(payload){
+  if(!payload || typeof payload !== 'object') return;
+  const nextCss = typeof payload.css_text === 'string' ? payload.css_text : '';
+  const nextSvgText = typeof payload.svg_text === 'string' ? payload.svg_text : '';
+
+  if(nextCss){
+    css.value = nextCss;
+  }
+
+  if(nextSvgText){
+    const safeSvg = _sanitizeForPreviewSvg(nextSvgText);
+    const parsed = new DOMParser().parseFromString(safeSvg, 'image/svg+xml');
+    const nextSvg = parsed.documentElement;
+    const nextShape = _extractShapeNode(nextSvg);
+    if(nextShape){
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const styleNode = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      styleNode.setAttribute('id', 'styleEl');
+      defs.appendChild(styleNode);
+      svg.appendChild(defs);
+      svg.appendChild(document.importNode(nextShape, true));
+    }
+  }
+
+  applyCssToPreview();
+}
+
+function exportState(){
+  return {
+    css_text: css.value,
+    svg_text: new XMLSerializer().serializeToString(svg)
+  };
+}
 
 const persona = {
   name: 'Emmys',
@@ -345,7 +401,7 @@ function setTpl(kind){
 	inner = '<polygon id="shape" points="128,24 156,100 236,100 172,148 196,228 128,180 60,228 84,148 20,100 100,100"/>';
   }
   svg.innerHTML = '<defs><style id="styleEl"></style></defs>' + inner;
-  document.getElementById('styleEl').textContent = css.value;
+  applyCssToPreview();
 }
 
 function saveCSS(){
@@ -355,19 +411,29 @@ function saveCSS(){
 
 function makeSprite(){
   const clone = svg.cloneNode(true);
-  clone.querySelector('#styleEl').textContent = css.value;
+  const cloneStyle = clone.querySelector('#styleEl');
+  if(cloneStyle){
+    cloneStyle.textContent = css.value;
+  }
   const txt = new XMLSerializer().serializeToString(clone);
   const blob = new Blob([txt], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
   const img = new Image();
   img.onload = ()=>{
+    const maxSize = 150;
+    const sourceW = Math.max(1, img.naturalWidth || 256);
+    const sourceH = Math.max(1, img.naturalHeight || 256);
+    const ratio = Math.min(1, maxSize / Math.max(sourceW, sourceH));
+    const outW = Math.max(1, Math.round(sourceW * ratio));
+    const outH = Math.max(1, Math.round(sourceH * ratio));
+
     const c = document.createElement('canvas');
-    c.width = img.naturalWidth || 256;
-    c.height = img.naturalHeight || 256;
+    c.width = outW;
+    c.height = outH;
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);
     const png = c.toDataURL('image/png');
     URL.revokeObjectURL(url);
-    ipc.postMessage(JSON.stringify({type:'css_sprite', data_url: png, css: css.value, svg: txt, meta:{w:c.width,h:c.height}}));
+    ipc.postMessage(JSON.stringify({type:'css_sprite', data_url: png, css: css.value, svg: txt, meta:{w:outW,h:outH,source_w:sourceW,source_h:sourceH}}));
   };
   img.onerror = ()=> ipc.postMessage('img_error');
   img.src = url;
@@ -398,6 +464,9 @@ func _on_web_ipc_message(msg: String) -> void:
 
 	if msg == "html_loaded":
 		print("[WebOverlay] HTML cargado")
+		if not _web_hydration_payload.is_empty():
+			_hydrate_web_editor(_web_hydration_payload)
+			_web_hydration_payload = {}
 		return
 
 	if msg == "img_error":
@@ -508,6 +577,29 @@ func _read_json_file(path: String) -> Variant:
 	if text.strip_edges() == "":
 		return null
 	return JSON.parse_string(text)
+
+func _read_bullet_hydration_payload() -> Dictionary:
+	var profile_path := "user://bullets/bullet_current.json"
+	if not FileAccess.file_exists(profile_path):
+		return {}
+	var raw: Variant = _read_json_file(profile_path)
+	if typeof(raw) != TYPE_DICTIONARY:
+		return {}
+	var data: Dictionary = raw
+	var css_text := String(data.get("css_text", ""))
+	var svg_text := String(data.get("svg_text", ""))
+	if css_text == "" and svg_text == "":
+		return {}
+	return {
+		"css_text": css_text,
+		"svg_text": svg_text
+	}
+
+func _hydrate_web_editor(payload: Dictionary) -> void:
+	if payload.is_empty() or not web.has_method("eval"):
+		return
+	var js := "hydrateFromGodot(%s);" % JSON.stringify(payload)
+	web.call_deferred("eval", js)
 
 func _extract_css_rules(text: String) -> PackedStringArray:
 	var rules := PackedStringArray()
