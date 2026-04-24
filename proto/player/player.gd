@@ -124,15 +124,17 @@ extends CharacterBody2D
 @export var bullet_scene: PackedScene = preload("res://proto/scenes/css_bullet.tscn")
 @export var bullet_speed: float = 1300.0
 @export var bullet_damage: int = 1
-@export_multiline var bullet_css_text: String = "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
 @export var bullet_balance_reference_size: Vector2 = Vector2(28, 16)
 @export var bullet_speed_min_factor: float = 0.55
 @export var bullet_speed_max_factor: float = 1.85
 @export var bullet_damage_min_factor: float = 0.6
 @export var bullet_damage_max_factor: float = 2.8
+@export var debug_show_raycast: bool = true
 
 var bullet_profile_path: String = ""
-var bullet_profile_data: Dictionary = {}
+var current_bullet_profile: Dictionary = {}
+const DEFAULT_BULLET_CSS_TEXT := "background-color: #ff3b3b; width: 28px; height: 16px; border-radius: 6px;"
+var _warned_missing_bullet_profile: bool = false
 
 @export_group("Debug — Labels (opcional)")
 @export_node_path("Label") var lbl_state_path: NodePath = ^"debug/lbl_state"
@@ -195,6 +197,10 @@ func _ready() -> void:
 	if anim == null: push_warning("AnimationPlayer no encontrado en '%s'." % anim_path)
 	if gfx_root == null: push_warning("gfx_root no encontrado en '%s'." % gfx_root_path)
 	if wall_probe == null: push_warning("RayCast2D wall_probe no encontrado en '%s'." % wall_probe_path)
+	if debug_show_raycast and wall_probe:
+		get_tree().debug_collisions_hint = true
+		wall_probe.debug_shape_custom_color = Color(1.0, 0.45, 0.15, 0.9)
+		wall_probe.force_raycast_update()
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
 	if attack_area:
 		attack_area.monitoring = false
@@ -492,10 +498,11 @@ func _spawn_css_bullet() -> void:
 	var tuned_speed: float = tuned_stats.get("speed", bullet_speed)
 	var tuned_damage: int = tuned_stats.get("damage", bullet_damage)
 
-	if not bullet_profile_data.is_empty() and bullet.has_method("setup_from_profile"):
-		bullet.call("setup_from_profile", bullet_profile_data, facing, tuned_speed, tuned_damage)
+	if not current_bullet_profile.is_empty() and bullet.has_method("setup_from_profile"):
+		bullet.call("setup_from_profile", current_bullet_profile, facing, tuned_speed, tuned_damage)
 	elif bullet.has_method("setup_from_css"):
-		bullet.call("setup_from_css", bullet_css_text, facing, tuned_speed, tuned_damage)
+		var fallback_css := _get_active_bullet_css_text()
+		bullet.call("setup_from_css", fallback_css, facing, tuned_speed, tuned_damage)
 	elif "direction" in bullet:
 		bullet.direction = Vector2(float(facing), 0.0)
 
@@ -509,32 +516,24 @@ func _play_shoot_pose() -> void:
 	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
 	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
 
-func equip_bullet_from_profile(profile_path_or_dict: Variant) -> void:
-	var profile := {}
-
-	if typeof(profile_path_or_dict) == TYPE_STRING:
-		var path := String(profile_path_or_dict)
-		bullet_profile_path = path
-		var loaded_profile := _load_json_dictionary(path)
-		if loaded_profile.is_empty():
-			push_warning("[Player] Perfil de bullet vacío o inválido: %s" % path)
-			return
-		profile = loaded_profile
-	elif typeof(profile_path_or_dict) == TYPE_DICTIONARY:
-		profile = profile_path_or_dict
-		bullet_profile_path = String(profile.get("profile_path", bullet_profile_path))
-	else:
-		push_warning("[Player] equip_bullet_from_profile recibió tipo no soportado")
+func equip_bullet_from_profile(profile: Dictionary) -> void:
+	if profile.is_empty():
+		push_warning("[Player] Perfil de bullet vacío o inválido")
 		return
 
-	bullet_profile_data = profile.duplicate(true)
-	var profile_css := String(profile.get("css_text", ""))
-	if profile_css != "":
-		bullet_css_text = profile_css
+	bullet_profile_path = String(profile.get("profile_path", bullet_profile_path))
+	current_bullet_profile = profile.duplicate(true)
+	current_bullet_profile["css_text"] = String(current_bullet_profile.get("css_text", ""))
+	var runtime_rules := _to_packed_rules(current_bullet_profile.get("css_rules", current_bullet_profile.get("css_properties_used", [])))
+	current_bullet_profile["css_rules"] = runtime_rules
+	current_bullet_profile["css_properties_used"] = runtime_rules
+	current_bullet_profile["damage_base"] = max(1, int(current_bullet_profile.get("damage_base", bullet_damage)))
+	_warned_missing_bullet_profile = false
+
 	var absolute_profile_path := ""
 	if bullet_profile_path != "":
 		absolute_profile_path = ProjectSettings.globalize_path(bullet_profile_path)
-	var image_path := String(profile.get("image_path", ""))
+	var image_path := String(current_bullet_profile.get("sprite_path", current_bullet_profile.get("image_path", "")))
 	var absolute_image_path := ""
 	if image_path != "":
 		absolute_image_path = ProjectSettings.globalize_path(image_path)
@@ -542,7 +541,7 @@ func equip_bullet_from_profile(profile_path_or_dict: Variant) -> void:
 	print("[Player] Bullet equipada. profile=%s image=%s reglas=%d speed=%.1f damage=%d" % [
 		absolute_profile_path,
 		absolute_image_path,
-		int(Array(profile.get("css_rules", [])).size()),
+		int(current_bullet_profile.get("css_rules", PackedStringArray()).size()),
 		float(tuned_stats.get("speed", bullet_speed)),
 		int(tuned_stats.get("damage", bullet_damage))
 	])
@@ -563,11 +562,15 @@ func _load_json_dictionary(path: String) -> Dictionary:
 	return parsed
 
 func _compute_bullet_stats_from_profile() -> Dictionary:
-	var meta: Dictionary = bullet_profile_data.get("meta", {})
+	var meta: Dictionary = current_bullet_profile.get("meta", {})
 	var width := float(meta.get("w", bullet_balance_reference_size.x))
 	var height := float(meta.get("h", bullet_balance_reference_size.y))
 	width = max(1.0, width)
 	height = max(1.0, height)
+	var damage_base := max(1, int(current_bullet_profile.get("damage_base", bullet_damage)))
+	if current_bullet_profile.is_empty() and not _warned_missing_bullet_profile:
+		push_warning("[Player] No hay perfil de bala equipado. Se usará CSS por defecto.")
+		_warned_missing_bullet_profile = true
 
 	var reference_area: float = max(1.0, bullet_balance_reference_size.x * bullet_balance_reference_size.y)
 	var area_ratio: float = (width * height) / reference_area
@@ -577,8 +580,29 @@ func _compute_bullet_stats_from_profile() -> Dictionary:
 
 	return {
 		"speed": bullet_speed * speed_factor,
-		"damage": max(1, int(round(float(bullet_damage) * damage_factor)))
+		"damage": max(1, int(round(float(damage_base) * damage_factor)))
 	}
+
+func _get_active_bullet_css_text() -> String:
+	var css_text := String(current_bullet_profile.get("css_text", ""))
+	if css_text == "":
+		return DEFAULT_BULLET_CSS_TEXT
+	return css_text
+
+func _to_packed_rules(source: Variant) -> PackedStringArray:
+	var rules := PackedStringArray()
+	var arr: Array = []
+	if source is PackedStringArray:
+		arr = Array(source)
+	elif source is Array:
+		arr = source
+	else:
+		return rules
+	for rule in arr:
+		var key := String(rule).strip_edges().to_lower()
+		if key != "":
+			rules.append(key)
+	return rules
 
 # ============================================================================
 # FSM básica (elige anim cuando no hay estado dominante)

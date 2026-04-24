@@ -531,6 +531,7 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 		existing_created_at = now_iso
 
 	var profile := {
+		"sprite_path": image_path,
 		"image_path": image_path,
 		"meta": {
 			"w": int(meta.get("w", image.get_width())),
@@ -538,6 +539,8 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 		},
 		"css_text": last_css,
 		"css_rules": _extract_css_rules(last_css),
+		"css_properties_used": _extract_css_rules(last_css),
+		"damage_base": 1,
 		"svg_text": last_svg,
 		"created_at": existing_created_at,
 		"updated_at": now_iso
@@ -555,19 +558,20 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 	print("[WebOverlay] profile(abs): %s" % ProjectSettings.globalize_path(profile_path))
 	print("[WebOverlay] image(user://): %s" % image_path)
 	print("[WebOverlay] image(abs): %s" % ProjectSettings.globalize_path(image_path))
-	_notify_player_to_equip_bullet(profile_path, profile)
+	profile["profile_path"] = profile_path
+	_notify_player_to_equip_bullet(profile)
 
-func _notify_player_to_equip_bullet(profile_path: String, profile: Dictionary) -> void:
+func _notify_player_to_equip_bullet(profile: Dictionary) -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if player == null:
 		push_warning("[WebOverlay] No se encontró jugador para equipar bullet")
 		return
 	if player.has_method("equip_bullet_from_profile"):
-		player.call("equip_bullet_from_profile", profile_path)
+		player.call("equip_bullet_from_profile", profile)
 	elif player.has_method("equip_bullet_profile"):
 		player.call("equip_bullet_profile", profile)
 	else:
-		push_warning("[WebOverlay] Jugador sin método equip_bullet_from_profile(profile_path_or_dict)")
+		push_warning("[WebOverlay] Jugador sin método equip_bullet_from_profile(profile)")
 
 func _read_json_file(path: String) -> Variant:
 	var file := FileAccess.open(path, FileAccess.READ)
