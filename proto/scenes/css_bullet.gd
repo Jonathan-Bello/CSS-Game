@@ -40,7 +40,15 @@ func setup_from_profile(profile: Dictionary, facing: int, new_speed: float, new_
 	damage = new_damage
 	direction = Vector2(float(facing), 0.0)
 	css_rules = _extract_rules(css_text)
-	texture_path = String(profile.get("image_path", ""))
+	if profile.has("css_rules"):
+		var explicit_rules := PackedStringArray()
+		for raw_rule in Array(profile.get("css_rules", [])):
+			var normalized := String(raw_rule).strip_edges().to_lower()
+			if normalized != "":
+				explicit_rules.append(normalized)
+		if not explicit_rules.is_empty():
+			css_rules = explicit_rules
+	texture_path = String(profile.get("sprite_path", profile.get("image_path", "")))
 	var meta: Dictionary = profile.get("meta", {})
 	texture_size = Vector2(
 		float(meta.get("w", 28)),
