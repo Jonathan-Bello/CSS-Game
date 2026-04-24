@@ -188,41 +188,41 @@ func _load_editor_html() -> void:
 </style></head>
 <body>
   <div class="wrap">
-    <div class="bar">
-      <select id="tpl" onchange="setTpl(this.value)">
-        <option value="box">Caja</option>
-        <option value="circle">Círculo</option>
-        <option value="star">Estrella</option>
+	<div class="bar">
+	  <select id="tpl" onchange="setTpl(this.value)">
+		<option value="box">Caja</option>
+		<option value="circle">Círculo</option>
+		<option value="star">Estrella</option>
       </select>
-      <button onclick="saveCSS()">Guardar CSS</button>
-      <button onclick="makeSprite()">Crear Sprite</button>
-      <button onclick="ipc.postMessage('close')">Cerrar</button>
-      <span style="margin-left:auto;font-size:13px;color:#eac435">Mentora IA: Emmys (tono aventurera)</span>
+	  <button onclick="saveCSS()">Guardar CSS</button>
+	  <button onclick="makeSprite()">Crear Sprite</button>
+	  <button onclick="ipc.postMessage('close')">Cerrar</button>
+	  <span style="margin-left:auto;font-size:13px;color:#eac435">Mentora IA: Emmys (tono aventurera)</span>
     </div>
 
-    <div class="main">
-      <div class="editor">
-        <textarea id="css">/* edita el estilo */
+	<div class="main">
+	  <div class="editor">
+		<textarea id="css">/* edita el estilo */
 svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </textarea>
 
-        <div class="preview">
-          <svg id="svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-            <defs><style id="styleEl"></style></defs>
-            <rect id="shape" x="28" y="28" width="200" height="200" rx="24" ry="24"/>
+		<div class="preview">
+		  <svg id="svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+			<defs><style id="styleEl"></style></defs>
+			<rect id="shape" x="28" y="28" width="200" height="200" rx="24" ry="24"/>
           </svg>
         </div>
       </div>
 
-      <div class="chat">
+	  <div class="chat">
         <header>💬 Emmys, guardiana CSS <span>(consejos breves + ejemplos)</span></header>
-        <div class="log" id="log"></div>
-        <form id="chatForm">
-          <input id="msg" type="text" placeholder="Pregúntame sobre sombras, gradientes, animaciones..." autocomplete="off" />
-          <button type="submit">Pedir consejo</button>
+		<div class="log" id="log"></div>
+		<form id="chatForm">
+		  <input id="msg" type="text" placeholder="Pregúntame sobre sombras, gradientes, animaciones..." autocomplete="off" />
+		  <button type="submit">Pedir consejo</button>
         </form>
-        <p class="aside-note">Emmys responde como un personaje del juego y se apoya en tu CSS actual para dar tips accionables.</p>
+		<p class="aside-note">Emmys responde como un personaje del juego y se apoya en tu CSS actual para dar tips accionables.</p>
       </div>
     </div>
   </div>
@@ -339,11 +339,11 @@ addMsg('ai', '¡Salud, creador! Soy Emmys, brillo ámbar (#EAC435). Muéstrame t
 function setTpl(kind){
   let inner = '';
   if(kind==='box'){
-    inner = '<rect id="shape" x="28" y="28" width="200" height="200" rx="24" ry="24"/>';
+	inner = '<rect id="shape" x="28" y="28" width="200" height="200" rx="24" ry="24"/>';
   }else if(kind==='circle'){
-    inner = '<circle id="shape" cx="128" cy="128" r="96"/>';
+	inner = '<circle id="shape" cx="128" cy="128" r="96"/>';
   }else{
-    inner = '<polygon id="shape" points="128,24 156,100 236,100 172,148 196,228 128,180 60,228 84,148 20,100 100,100"/>';
+	inner = '<polygon id="shape" points="128,24 156,100 236,100 172,148 196,228 128,180 60,228 84,148 20,100 100,100"/>';
   }
   svg.innerHTML = '<defs><style id="styleEl"></style></defs>' + inner;
   document.getElementById('styleEl').textContent = css.value;
