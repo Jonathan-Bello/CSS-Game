@@ -27,6 +27,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 CssAffinity="*res://proto/scenes/css_affinity.gd"
+CssUnlocks="*res://proto/scenes/css_unlocks.gd"
 
 [display]
 

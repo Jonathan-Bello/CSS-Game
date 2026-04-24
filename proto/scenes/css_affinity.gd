@@ -126,6 +126,9 @@ static func compute_damage(bullet_profile: Dictionary, target_affinity: Dictiona
 
 	for raw_prop in enemy_properties.keys():
 		var prop := _normalize_property_name(String(raw_prop))
+		# Si la propiedad no está desbloqueada para el jugador, no da bonus.
+		if not CssUnlocks.is_property_unlocked(prop):
+			continue
 		if not bullet_properties.has(prop):
 			continue
 		had_property_match = true
