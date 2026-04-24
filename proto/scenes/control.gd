@@ -530,6 +530,7 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 	if existing_created_at == "":
 		existing_created_at = now_iso
 
+	var normalized_properties := CssAffinity.parse_relevant_properties(last_css)
 	var profile := {
 		"sprite_path": image_path,
 		"image_path": image_path,
@@ -539,6 +540,7 @@ func _save_and_equip_bullet(data: Dictionary) -> void:
 		},
 		"css_text": last_css,
 		"css_rules": _extract_css_rules(last_css),
+		"css_properties": normalized_properties,
 		"css_properties_used": _extract_css_rules(last_css),
 		"damage_base": 1,
 		"svg_text": last_svg,
