@@ -582,18 +582,6 @@ function newBullet(){
 """
 	web.call("load_html", html)
 
-	# ✅ Inyecta secrets/modelo desde entorno o .env (sin dejarlos hardcodeados)
-	var api_key := _get_secret("OPENAI_API_KEY")
-	var model := _get_secret("OPENAI_MODEL") # opcional
-
-	if api_key != "":
-		_inject_window_var("OPENAI_API_KEY", api_key)
-	else:
-		push_warning("[WebOverlay] No hay OPENAI_API_KEY. Emmys usará fallback local.")
-
-	if model != "":
-		_inject_window_var("OPENAI_MODEL", model)
-
 func _on_web_ipc_message(msg: String) -> void:
 	print("[WebOverlay] ipc_message: ", msg)
 
