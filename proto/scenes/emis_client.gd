@@ -41,7 +41,7 @@ func request_chat(payload: Dictionary) -> Dictionary:
 		push_warning("[Emis] HTTP no exitoso: %s" % status_code)
 		return _error_result("Emis respondió con un error del servidor.", "http_error")
 
-	var parsed := JSON.parse_string(String(response.get("body_text", "")))
+	var parsed: Variant = JSON.parse_string(String(response.get("body_text", "")))
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_warning("[Emis] JSON inválido o no es objeto")
 		return _error_result("La respuesta de Emis llegó en un formato inválido.", "invalid_response")
