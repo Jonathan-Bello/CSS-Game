@@ -1,3 +1,3 @@
 [submodule "backend/emis-backend"]
 	path = backend/emis-backend
-	url = git@github.com:Jonathan-Bello/CSS-Game-Emis.git
+	url = https://github.com/Jonathan-Bello/CSS-Game-Emis.git
