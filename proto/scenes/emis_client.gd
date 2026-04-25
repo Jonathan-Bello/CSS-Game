@@ -216,7 +216,7 @@ func _request_json(endpoint: String, method: int, body: String, headers: PackedS
 	return response
 
 func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
-	var done := false
+	var done := {"value": false}
 	var timed_out := false
 	var packet := {
 		"ok": false,
@@ -224,13 +224,14 @@ func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
 		"code": "network"
 	}
 
+	var packet_ref := {"value": packet}
 	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-		done = true
-		packet = _map_http_packet(result, response_code, body)
+		done["value"] = true
+		packet_ref["value"] = _map_http_packet(result, response_code, body)
 	, CONNECT_ONE_SHOT)
 
 	var timer := get_tree().create_timer(max(timeout_seconds, 0.1))
-	while not done and not timed_out:
+	while not done["value"] and not timed_out:
 		if timer.time_left <= 0.0:
 			timed_out = true
 			break
@@ -241,7 +242,7 @@ func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
 		push_warning("[Emis] timeout alcanzado (%ss) endpoint=%s" % [timeout_seconds, endpoint])
 		return _error_result("Emis tardó demasiado en responder.", "timeout")
 
-	return packet
+	return packet_ref["value"]
 
 func _map_http_packet(result: int, response_code: int, body: PackedByteArray) -> Dictionary:
 	var body_text := body.get_string_from_utf8()
