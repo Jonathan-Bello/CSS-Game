@@ -334,12 +334,12 @@ function renderDetectedProperties(){
   }
   if(detectedList){
     if(!detected.length){
-      detectedList.innerHTML = '<span style="color:#88ffb0;font-size:12px">Sin propiedades detectadas.</span>';
+	  detectedList.innerHTML = '<span style="color:#88ffb0;font-size:12px">Sin propiedades detectadas.</span>';
     }else{
       detectedList.innerHTML = detected.map((prop)=>{
         const isLocked = locked.has(prop);
         const cls = isLocked ? 'prop-chip locked' : 'prop-chip';
-        return `<span class="${cls}">${escapeHtml(prop)}</span>`;
+		return `<span class="${cls}">${escapeHtml(prop)}</span>`;
       }).join('');
     }
   }
