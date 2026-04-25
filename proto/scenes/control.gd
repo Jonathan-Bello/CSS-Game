@@ -163,36 +163,33 @@ func _load_editor_html() -> void:
 <html><head><meta charset="utf-8"/>
 <style>
   html,body{margin:0;background:transparent;color:#fff;font-family:sans-serif}
-  .wrap{display:grid;grid-template-rows:auto 1fr; height:100vh}
-  .bar{display:flex;gap:8px;padding:8px;background:#0b1222cc;border-bottom:1px solid #335;align-items:center}
-  button{background:#4a90e2;border:0;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
+  .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
+  .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
+  button{background:#4a90e2;border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+  .btn-secondary{background:#2b3858}
+  .btn-warn{background:#7d3142}
   button:disabled{opacity:.5;cursor:wait}
-  select{background:#123;color:#fff;border:1px solid #345;border-radius:6px;padding:6px}
-  .main{display:grid;grid-template-columns:2fr 1fr;gap:12px;padding:8px;box-sizing:border-box;height:100%;min-height:0}
-  .editor{display:grid;grid-template-rows:auto 1fr;gap:8px;min-height:0}
-  textarea{width:100%;height:160px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:8px;box-sizing:border-box;padding:8px}
-  .locked-panel{background:#131a2d;border:1px solid #3a2333;border-radius:8px;padding:8px;max-height:150px;overflow:auto}
-  .locked-title{font-size:12px;color:#ff9ba6;margin:0 0 6px}
-  .locked-list{display:flex;flex-wrap:wrap;gap:6px}
-  .locked-chip{font-size:12px;padding:2px 6px;border-radius:999px;background:#3b1f2c;color:#ff5f73;border:1px solid #7d3142}
-  .code-hint{font-size:12px;color:#ffb4bf}
-  .css-preview{margin:0;background:#0a1120;border:1px solid #2a3450;border-radius:8px;padding:8px;color:#c4e1ff;max-height:170px;overflow:auto;white-space:pre-wrap}
-  .css-preview .locked-prop{color:#ff5f73;font-weight:700}
-  .preview{display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#0f1b33,#0b1222);border:1px solid #243049;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.4)}
+  select{background:#123;color:#fff;border:1px solid #345;border-radius:8px;padding:8px}
+  .indicators{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px 10px;background:#0b1222cc;border-bottom:1px solid #22314f}
+  .pill{background:linear-gradient(145deg,#101a30,#0c1427);border:1px solid #314266;border-radius:10px;padding:10px}
+  .pill .label{display:block;font-size:11px;color:#9ab0e8;text-transform:uppercase;letter-spacing:.5px}
+  .pill .value{display:block;margin-top:4px;font-size:14px;font-weight:700;color:#e7f0ff}
+  .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(320px,.9fr);gap:10px;padding:10px;box-sizing:border-box;height:100%;min-height:0}
+  .workbench{grid-column:1 / span 2;display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}
+  .editor{display:grid;grid-template-rows:auto auto;gap:10px;min-height:0}
+  textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+  .code-hint{font-size:12px;color:#ffb4bf;margin:0}
+  .prop-panel{background:linear-gradient(145deg,#121d34,#0f162a);border:1px solid #314266;border-radius:10px;padding:10px}
+  .prop-panel h3{margin:0 0 8px;font-size:13px;color:#d5e4ff}
+  .prop-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+  .prop-chip{font-size:12px;padding:3px 8px;border-radius:999px;background:#1f2d4d;color:#acd7ff;border:1px solid #395382}
+  .prop-chip.locked{background:#3b1f2c;color:#ff6b81;border:1px solid #8b3647}
+  .preview{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%, #1a2f59 0%, #0b1222 58%);border:1px solid #314266;border-radius:14px;box-shadow:0 14px 28px rgba(0,0,0,.45);min-height:0}
+  .chat-shell{grid-column:3;display:grid;grid-template-rows:auto 1fr auto;gap:8px;background:linear-gradient(145deg,#131e37,#0d1529);border:1px solid #314266;border-radius:14px;padding:12px;box-shadow:0 12px 26px rgba(0,0,0,.35);min-height:0}
+  .chat-shell h3{margin:0;font-size:14px;color:#ffd57f}
+  .chat-shell p{margin:0;color:#bfd0f5;font-size:12px;line-height:1.45}
+  .chat-placeholder{border:1px dashed #4a5f8d;border-radius:10px;background:#0a1020aa;display:flex;align-items:center;justify-content:center;color:#90a8db;font-size:12px;padding:12px;text-align:center}
   svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
-  .chat{display:grid;grid-template-rows:auto 1fr auto auto;gap:8px;background:#0b1222cc;border:1px solid #243049;border-radius:12px;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.35);min-height:0;max-height:100%}
-  .chat header{display:flex;align-items:center;gap:8px;font-weight:bold;letter-spacing:.5px;color:#eac435}
-  .chat header span{font-size:12px;color:#b2c7ff}
-  .log{overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding-right:4px;min-height:0;max-height:360px}
-  .msg{display:grid;gap:4px;background:#111b33b8;border:1px solid #243049;border-radius:10px;padding:8px}
-  .msg.user{border-color:#4a90e2}
-  .msg.ai{border-color:#eac43544;background:linear-gradient(135deg,#181e32,#0f1629)}
-  .msg .who{font-size:12px;color:#9fb2e7;display:flex;align-items:center;gap:6px}
-  .msg.ai .who{color:#eac435}
-  .bubble{line-height:1.4}
-  .chat form{display:flex;gap:8px}
-  .chat input{flex:1;background:#0f1b33;border:1px solid #243049;border-radius:10px;color:#e6f3ff;padding:10px 12px}
-  .aside-note{font-size:12px;color:#b2c7ff;margin:0;line-height:1.5}
 </style></head>
 <body>
   <div class="wrap">
@@ -202,24 +199,31 @@ func _load_editor_html() -> void:
 		<option value="circle">Círculo</option>
 		<option value="star">Estrella</option>
       </select>
-	  <button onclick="saveCSS()">Guardar CSS</button>
-	  <button onclick="makeSprite()">Crear Sprite</button>
-	  <button onclick="ipc.postMessage('close')">Cerrar</button>
+	  <button class="btn-secondary" onclick="saveDraft()">Guardar borrador</button>
+	  <button onclick="equipBullet()">Equipar como munición</button>
+	  <button class="btn-warn" onclick="newBullet()">Nueva bala</button>
+	  <button onclick="closeOverlay()">Cerrar</button>
 	  <span style="margin-left:auto;font-size:13px;color:#eac435">Mentora IA: Emmys (tono aventurera)</span>
     </div>
+	<div class="indicators">
+	  <div class="pill"><span class="label">Bala equipada</span><span class="value" id="equipIndicator">No equipada</span></div>
+	  <div class="pill"><span class="label">Última actualización</span><span class="value" id="updateIndicator">Sin cambios</span></div>
+	  <div class="pill"><span class="label">Propiedades CSS detectadas</span><span class="value" id="countIndicator">0</span></div>
+	</div>
 
 	<div class="main">
-	  <div class="editor">
-		<textarea id="css">/* edita el estilo */
+	  <div class="workbench">
+		<div class="editor">
+		  <textarea id="css">/* edita el estilo */
 svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </textarea>
-		<p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
-		<div class="locked-panel">
-		  <p class="locked-title">Propiedades CSS bloqueadas (progreso)</p>
-		  <div class="locked-list" id="lockedList"></div>
+		  <p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
+		  <div class="prop-panel">
+			<h3>Propiedades detectadas</h3>
+			<div class="prop-list" id="detectedList"></div>
+		  </div>
 		</div>
-		<pre class="css-preview" id="cssPreview"></pre>
 
 		<div class="preview">
 		  <svg id="svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
@@ -228,29 +232,30 @@ svg{width:180px;height:180px}
           </svg>
         </div>
       </div>
-
-	  <div class="chat">
-        <header>💬 Emmys, guardiana CSS <span>(consejos breves + ejemplos)</span></header>
-		<div class="log" id="log"></div>
-		<form id="chatForm">
-		  <input id="msg" type="text" placeholder="Pregúntame sobre sombras, gradientes, animaciones..." autocomplete="off" />
-		  <button type="submit">Pedir consejo</button>
-        </form>
-		<p class="aside-note">Emmys responde como un personaje del juego y se apoya en tu CSS actual para dar tips accionables.</p>
-      </div>
+	  <aside class="chat-shell">
+		<h3>💬 Emmys (chatbot)</h3>
+		<p>Espacio reservado para el asistente conversacional. Esta columna queda preparada para integrar prompts, historial y tips del CSS en próximas iteraciones.</p>
+		<div class="chat-placeholder">
+		  Próximamente: chat de Emmys con sugerencias contextuales de daño/estilo.
+		</div>
+	  </aside>
     </div>
   </div>
 
 <script>
 const css = document.getElementById('css');
 const svg = document.getElementById('svg');
-const log = document.getElementById('log');
-const form = document.getElementById('chatForm');
-const msg = document.getElementById('msg');
-const lockedList = document.getElementById('lockedList');
-const cssPreview = document.getElementById('cssPreview');
+const equipIndicator = document.getElementById('equipIndicator');
+const updateIndicator = document.getElementById('updateIndicator');
+const countIndicator = document.getElementById('countIndicator');
+const detectedList = document.getElementById('detectedList');
+const DEFAULT_CSS = `/* edita el estilo */
+svg{width:180px;height:180px}
+#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}`;
 let unlockState = {};
 let allProperties = [];
+let bulletEquipped = false;
+let bulletUpdatedAt = '';
 
 function getStyleEl(){
   return document.getElementById('styleEl');
@@ -260,7 +265,7 @@ function applyCssToPreview(){
   const liveStyle = getStyleEl();
   if(!liveStyle) return;
   liveStyle.textContent = css.value;
-  renderLockedInfo();
+  renderDetectedProperties();
 }
 
 applyCssToPreview();
@@ -276,6 +281,12 @@ function escapeHtml(raw){
 }
 
 function getLockedPropertiesFromCss(text){
+  const found = getDetectedProperties(text)
+    .filter((key)=>!unlockState[key]);
+  return found;
+}
+
+function getDetectedProperties(text){
   const found = [];
   const seen = new Set();
   const parts = String(text || '').split(';');
@@ -287,8 +298,7 @@ function getLockedPropertiesFromCss(text){
     let key = chunk.slice(0, idx).trim().toLowerCase();
     if(key === 'background') key = 'background-color';
     if(!key) continue;
-    const enabled = Boolean(unlockState[key]);
-    if(!enabled && !seen.has(key)){
+    if(!seen.has(key)){
       seen.add(key);
       found.push(key);
     }
@@ -296,24 +306,42 @@ function getLockedPropertiesFromCss(text){
   return found;
 }
 
-function renderLockedInfo(){
-  const locked = getLockedPropertiesFromCss(css.value);
-  if(lockedList){
-    if(!locked.length){
-      lockedList.innerHTML = '<span style=\"color:#88ffb0;font-size:12px\">Todo lo escrito está desbloqueado ✨</span>';
-    }else{
-      lockedList.innerHTML = locked.map((p)=>`<span class=\"locked-chip\">${escapeHtml(p)}</span>`).join('');
-    }
+function updateIndicators(){
+  if(equipIndicator){
+    equipIndicator.textContent = bulletEquipped ? 'Equipada ✅' : 'No equipada';
+    equipIndicator.style.color = bulletEquipped ? '#88ffb0' : '#ffd2d9';
   }
-  if(cssPreview){
-    const previewText = escapeHtml(css.value).replace(/([a-zA-Z-]+)[ \t]*:/g, (match, prop)=>{
-      const normalized = prop.toLowerCase() === 'background' ? 'background-color' : prop.toLowerCase();
-      if(!unlockState[normalized]){
-        return `<span class=\"locked-prop\">${escapeHtml(prop)}</span>:`;
-      }
-      return `${escapeHtml(prop)}:`;
-    });
-    cssPreview.innerHTML = previewText;
+  if(updateIndicator){
+    updateIndicator.textContent = bulletUpdatedAt || 'Sin cambios';
+  }
+}
+
+function closeOverlay(){
+  try{
+    ipc.postMessage('close');
+    ipc.postMessage(JSON.stringify({type:'close'}));
+  }catch(err){
+    console.error('No se pudo enviar close por IPC', err);
+  }
+}
+
+function renderDetectedProperties(){
+  const detected = getDetectedProperties(css.value);
+  const locked = new Set(getLockedPropertiesFromCss(css.value));
+
+  if(countIndicator){
+    countIndicator.textContent = String(detected.length);
+  }
+  if(detectedList){
+    if(!detected.length){
+	  detectedList.innerHTML = '<span style="color:#88ffb0;font-size:12px">Sin propiedades detectadas.</span>';
+    }else{
+      detectedList.innerHTML = detected.map((prop)=>{
+        const isLocked = locked.has(prop);
+        const cls = isLocked ? 'prop-chip locked' : 'prop-chip';
+		return `<span class="${cls}">${escapeHtml(prop)}</span>`;
+      }).join('');
+    }
   }
 }
 
@@ -333,6 +361,8 @@ function hydrateFromGodot(payload){
   const nextSvgText = typeof payload.svg_text === 'string' ? payload.svg_text : '';
   unlockState = (payload.unlock_state && typeof payload.unlock_state === 'object') ? payload.unlock_state : unlockState;
   allProperties = Array.isArray(payload.all_properties) ? payload.all_properties : allProperties;
+  bulletEquipped = Boolean(payload.bullet_equipped);
+  bulletUpdatedAt = typeof payload.updated_at === 'string' ? payload.updated_at : bulletUpdatedAt;
 
   if(nextCss){
     css.value = nextCss;
@@ -355,6 +385,7 @@ function hydrateFromGodot(payload){
   }
 
   applyCssToPreview();
+  updateIndicators();
 }
 
 function exportState(){
@@ -364,102 +395,7 @@ function exportState(){
   };
 }
 
-const persona = {
-  name: 'Emmys',
-  role: 'guardiana CSS del bastión de sprites',
-  color: '#EAC435'
-};
-
-function addMsg(kind, text){
-  const box = document.createElement('div');
-  box.className = `msg ${kind}`;
-  box.innerHTML = `<div class="who">${kind==='ai' ? '🦊 ' + persona.name : '🧑 Tú'}</div><div class="bubble">${text}</div>`;
-  log.appendChild(box);
-  log.scrollTop = log.scrollHeight;
-}
-
-async function callEmmysLLM(question){
-  const apiUrl = 'https://api.openai.com/v1/chat/completions';
-
-  // ✅ SOLO toma la key que inyecta Godot
-  const apiKey = (typeof window !== 'undefined' && window.OPENAI_API_KEY) ? window.OPENAI_API_KEY : '';
-
-  if(!apiKey){
-    throw new Error('Falta window.OPENAI_API_KEY (inyéctala desde Godot).');
-  }
-
-  const cssNow = css.value;
-
-  const body = {
-    model: (typeof window !== 'undefined' && window.OPENAI_MODEL) ? window.OPENAI_MODEL : 'o3-mini',
-    reasoning_effort: 'medium',
-    max_completion_tokens: 180,
-    messages: [
-      {role: 'system', content: `Eres Emmys, guardiana CSS de un videojuego. Responde en tono aventurero, breve y con ejemplos. Color de firma ${persona.color}. Siempre usa el CSS actual que recibe para dar tips.`},
-      {role: 'user', content: `CSS actual:\\n${cssNow}\\n\\nPregunta: ${question}`}
-    ]
-  };
-
-  const res = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(body)
-  });
-
-  if(!res.ok){
-    throw new Error('Error del modelo: ' + res.status);
-  }
-
-  const data = await res.json();
-  const reply = data?.choices?.[0]?.message?.content?.trim();
-  if(!reply) throw new Error('Respuesta vacía del modelo');
-  return reply;
-}
-
-function localFallback(question){
-  const cssNow = css.value;
-  const hints = [];
-  if(/box-shadow/i.test(cssNow)) hints.push('Refuerza la luz con capas: box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 4px rgba(234,196,53,.18);');
-  if(/linear-gradient/i.test(cssNow)) hints.push('Usa stops cercanos (0%, 12%, 100%) para lograr brillo dorado y mantener legibilidad.');
-  if(/animation/i.test(cssNow)) hints.push('Añade animation-fill-mode: forwards para conservar la pose final.');
-  if(/stroke-width/i.test(cssNow)) hints.push('stroke-linejoin: round suaviza las esquinas heroicas.');
-  if(!hints.length) hints.push('Puedes sumar glow: filter: drop-shadow(0 0 14px rgba(234,196,53,.55));');
-  const focus = question.toLowerCase();
-  let hook = 'Emmys aquí, brillo ámbar en mano: ';
-  if(focus.includes('gradiente')||focus.includes('gradient')) hook += 'veo rutas de color que necesitan transición suave. ';
-  else if(focus.includes('sombra')||focus.includes('shadow')) hook += 'las sombras cuentan de dónde viene tu luz. ';
-  else if(focus.includes('anim')) hook += 'una animación corta mantiene el ritmo de la aventura. ';
-  else hook += 'pulamos tu pieza con un truco rápido. ';
-  const sample = '`#shape { transition: 160ms ease; transform-origin: 50% 60%; }`';
-  return `${hook}${hints.join(' ')} Prueba también ${sample} para darle carácter.`;
-}
-
-async function sendToAI(evt){
-  evt.preventDefault();
-  const q = msg.value.trim();
-  if(!q) return;
-  addMsg('user', q);
-  msg.value = '';
-  const submitBtn = form.querySelector('button');
-  submitBtn.disabled = true;
-
-  try{
-    const reply = await callEmmysLLM(q);
-    addMsg('ai', reply);
-  }catch(err){
-    console.error(err);
-    addMsg('ai', localFallback(q));
-  }finally{
-    submitBtn.disabled = false;
-    ipc.postMessage(JSON.stringify({type:'ai_chat', question:q, css: css.value}));
-  }
-}
-
-form.addEventListener('submit', sendToAI);
-addMsg('ai', '¡Salud, creador! Soy Emmys, brillo ámbar (#EAC435). Muéstrame tu duda CSS y te daré un tip aventurero usando tu código actual.');
+updateIndicators();
 
 function setTpl(kind){
   let inner = '';
@@ -474,12 +410,14 @@ function setTpl(kind){
   applyCssToPreview();
 }
 
-function saveCSS(){
+function saveDraft(){
   const tpl = new XMLSerializer().serializeToString(svg);
   ipc.postMessage(JSON.stringify({type:'save_css', css: css.value, svg: tpl}));
+  bulletUpdatedAt = new Date().toISOString();
+  updateIndicators();
 }
 
-function makeSprite(){
+function equipBullet(){
   const clone = svg.cloneNode(true);
   const cloneStyle = clone.querySelector('#styleEl');
   if(cloneStyle){
@@ -503,10 +441,22 @@ function makeSprite(){
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);
     const png = c.toDataURL('image/png');
     URL.revokeObjectURL(url);
-    ipc.postMessage(JSON.stringify({type:'css_sprite', data_url: png, css: css.value, svg: txt, meta:{w:outW,h:outH,source_w:sourceW,source_h:sourceH}}));
+    ipc.postMessage(JSON.stringify({type:'equip_bullet', data_url: png, css: css.value, svg: txt, meta:{w:outW,h:outH,source_w:sourceW,source_h:sourceH}}));
+    bulletEquipped = true;
+    bulletUpdatedAt = new Date().toISOString();
+    updateIndicators();
   };
   img.onerror = ()=> ipc.postMessage('img_error');
   img.src = url;
+}
+
+function newBullet(){
+  document.getElementById('tpl').value = 'box';
+  css.value = DEFAULT_CSS;
+  setTpl('box');
+  bulletEquipped = false;
+  bulletUpdatedAt = '';
+  updateIndicators();
 }
 </script>
 </body></html>
@@ -546,20 +496,43 @@ func _on_web_ipc_message(msg: String) -> void:
 	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
+			"close":
+				close()
+				return
 			"save_css":
 				_save_css_draft(data)
-			"css_sprite":
+			"equip_bullet":
 				_save_and_equip_bullet(data)
 				close()
 
 func _save_css_draft(data: Dictionary) -> void:
 	last_css = String(data.get("css", ""))
 	last_svg = String(data.get("svg", ""))
-	print("[WebOverlay] CSS draft guardado (edición).")
+	var dir_path := "user://bullets"
+	var mkdir_err := DirAccess.make_dir_recursive_absolute(dir_path)
+	if mkdir_err != OK and mkdir_err != ERR_ALREADY_EXISTS:
+		push_warning("[WebOverlay] No se pudo crear directorio de borradores. err=%s" % mkdir_err)
+		return
+
+	var draft_path := "%s/bullet_draft.json" % dir_path
+	var now_iso := Time.get_datetime_string_from_system(true, true)
+	var draft := {
+		"css_text": last_css,
+		"svg_text": last_svg,
+		"updated_at": now_iso
+	}
+	var draft_file := FileAccess.open(draft_path, FileAccess.WRITE)
+	if draft_file == null:
+		push_warning("[WebOverlay] No se pudo guardar borrador editable")
+		return
+	draft_file.store_string(JSON.stringify(draft, "\t"))
+	draft_file.flush()
+	print("[WebOverlay] CSS draft persistido en %s" % draft_path)
 
 func _save_and_equip_bullet(data: Dictionary) -> void:
 	last_css = String(data.get("css", ""))
 	last_svg = String(data.get("svg", ""))
+	_save_css_draft(data)
 
 	var data_url := String(data.get("data_url", ""))
 	var prefix := "base64,"
@@ -661,26 +634,44 @@ func _read_bullet_hydration_payload() -> Dictionary:
 	var all_properties: PackedStringArray = _get_all_properties_from_singleton()
 	var base_payload := {
 		"unlock_state": unlock_state,
-		"all_properties": all_properties
+		"all_properties": all_properties,
+		"bullet_equipped": false,
+		"updated_at": ""
 	}
+	var draft_path := "user://bullets/bullet_draft.json"
 	var profile_path := "user://bullets/bullet_current.json"
-	if not FileAccess.file_exists(profile_path):
-		return base_payload
-	var raw: Variant = _read_json_file(profile_path)
-	if typeof(raw) != TYPE_DICTIONARY:
-		return base_payload
-	var data: Dictionary = raw
-	var css_text := String(data.get("css_text", ""))
-	var svg_text := String(data.get("svg_text", ""))
-	if css_text == "" and svg_text == "":
-		return base_payload
-	var out := {
-		"css_text": css_text,
-		"svg_text": svg_text,
-		"unlock_state": unlock_state,
-		"all_properties": all_properties
-	}
-	return out
+	var css_text := ""
+	var svg_text := ""
+	var updated_at := ""
+	var bullet_equipped := false
+
+	if FileAccess.file_exists(draft_path):
+		var draft_raw: Variant = _read_json_file(draft_path)
+		if typeof(draft_raw) == TYPE_DICTIONARY:
+			var draft_data: Dictionary = draft_raw
+			css_text = String(draft_data.get("css_text", ""))
+			svg_text = String(draft_data.get("svg_text", ""))
+			updated_at = String(draft_data.get("updated_at", ""))
+
+	if FileAccess.file_exists(profile_path):
+		var profile_raw: Variant = _read_json_file(profile_path)
+		if typeof(profile_raw) == TYPE_DICTIONARY:
+			var profile_data: Dictionary = profile_raw
+			bullet_equipped = true
+			if updated_at == "":
+				updated_at = String(profile_data.get("updated_at", ""))
+			if css_text == "":
+				css_text = String(profile_data.get("css_text", ""))
+			if svg_text == "":
+				svg_text = String(profile_data.get("svg_text", ""))
+
+	base_payload["bullet_equipped"] = bullet_equipped
+	base_payload["updated_at"] = updated_at
+	if css_text != "":
+		base_payload["css_text"] = css_text
+	if svg_text != "":
+		base_payload["svg_text"] = svg_text
+	return base_payload
 
 func _hydrate_web_editor(payload: Dictionary) -> void:
 	if payload.is_empty() or not web.has_method("eval"):
