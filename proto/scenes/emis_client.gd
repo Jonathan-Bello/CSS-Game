@@ -212,7 +212,7 @@ func _request_json(endpoint: String, method: int, body: String, headers: PackedS
 	var response := await _await_http_response(http, endpoint)
 	http.queue_free()
 	var elapsed_ms := max(0, Time.get_ticks_msec() - request_started_msec)
-	print("[Emis] request <- elapsed=%sms code=%s ok=%s" % [elapsed_ms, String(response.get("code", "")), String(response.get("ok", false))])
+	print("[Emis] request <- elapsed=%sms code=%s ok=%s" % [elapsed_ms, str(response.get("code", "")), str(response.get("ok", false))])
 	return response
 
 func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
