@@ -174,8 +174,9 @@ func _load_editor_html() -> void:
   .pill{background:linear-gradient(145deg,#101a30,#0c1427);border:1px solid #314266;border-radius:10px;padding:10px}
   .pill .label{display:block;font-size:11px;color:#9ab0e8;text-transform:uppercase;letter-spacing:.5px}
   .pill .value{display:block;margin-top:4px;font-size:14px;font-weight:700;color:#e7f0ff}
-  .main{display:grid;grid-template-rows:auto 1fr;gap:10px;padding:10px;box-sizing:border-box;height:100%;min-height:0}
-  .editor{display:grid;grid-template-rows:auto auto 1fr;gap:10px;min-height:0}
+  .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(320px,.9fr);gap:10px;padding:10px;box-sizing:border-box;height:100%;min-height:0}
+  .workbench{grid-column:1 / span 2;display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}
+  .editor{display:grid;grid-template-rows:auto auto;gap:10px;min-height:0}
   textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
   .code-hint{font-size:12px;color:#ffb4bf;margin:0}
   .prop-panel{background:linear-gradient(145deg,#121d34,#0f162a);border:1px solid #314266;border-radius:10px;padding:10px}
@@ -184,6 +185,10 @@ func _load_editor_html() -> void:
   .prop-chip{font-size:12px;padding:3px 8px;border-radius:999px;background:#1f2d4d;color:#acd7ff;border:1px solid #395382}
   .prop-chip.locked{background:#3b1f2c;color:#ff6b81;border:1px solid #8b3647}
   .preview{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%, #1a2f59 0%, #0b1222 58%);border:1px solid #314266;border-radius:14px;box-shadow:0 14px 28px rgba(0,0,0,.45);min-height:0}
+  .chat-shell{grid-column:3;display:grid;grid-template-rows:auto 1fr auto;gap:8px;background:linear-gradient(145deg,#131e37,#0d1529);border:1px solid #314266;border-radius:14px;padding:12px;box-shadow:0 12px 26px rgba(0,0,0,.35);min-height:0}
+  .chat-shell h3{margin:0;font-size:14px;color:#ffd57f}
+  .chat-shell p{margin:0;color:#bfd0f5;font-size:12px;line-height:1.45}
+  .chat-placeholder{border:1px dashed #4a5f8d;border-radius:10px;background:#0a1020aa;display:flex;align-items:center;justify-content:center;color:#90a8db;font-size:12px;padding:12px;text-align:center}
   svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
 </style></head>
 <body>
@@ -197,7 +202,7 @@ func _load_editor_html() -> void:
 	  <button class="btn-secondary" onclick="saveDraft()">Guardar borrador</button>
 	  <button onclick="equipBullet()">Equipar como munición</button>
 	  <button class="btn-warn" onclick="newBullet()">Nueva bala</button>
-	  <button onclick="ipc.postMessage('close')">Cerrar</button>
+	  <button onclick="closeOverlay()">Cerrar</button>
 	  <span style="margin-left:auto;font-size:13px;color:#eac435">Mentora IA: Emmys (tono aventurera)</span>
     </div>
 	<div class="indicators">
@@ -207,15 +212,17 @@ func _load_editor_html() -> void:
 	</div>
 
 	<div class="main">
-	  <div class="editor">
-		<textarea id="css">/* edita el estilo */
+	  <div class="workbench">
+		<div class="editor">
+		  <textarea id="css">/* edita el estilo */
 svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </textarea>
-		<p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
-		<div class="prop-panel">
-		  <h3>Propiedades detectadas</h3>
-		  <div class="prop-list" id="detectedList"></div>
+		  <p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
+		  <div class="prop-panel">
+			<h3>Propiedades detectadas</h3>
+			<div class="prop-list" id="detectedList"></div>
+		  </div>
 		</div>
 
 		<div class="preview">
@@ -225,6 +232,13 @@ svg{width:180px;height:180px}
           </svg>
         </div>
       </div>
+	  <aside class="chat-shell">
+		<h3>💬 Emmys (chatbot)</h3>
+		<p>Espacio reservado para el asistente conversacional. Esta columna queda preparada para integrar prompts, historial y tips del CSS en próximas iteraciones.</p>
+		<div class="chat-placeholder">
+		  Próximamente: chat de Emmys con sugerencias contextuales de daño/estilo.
+		</div>
+	  </aside>
     </div>
   </div>
 
@@ -299,6 +313,15 @@ function updateIndicators(){
   }
   if(updateIndicator){
     updateIndicator.textContent = bulletUpdatedAt || 'Sin cambios';
+  }
+}
+
+function closeOverlay(){
+  try{
+    ipc.postMessage('close');
+    ipc.postMessage(JSON.stringify({type:'close'}));
+  }catch(err){
+    console.error('No se pudo enviar close por IPC', err);
   }
 }
 
@@ -473,6 +496,9 @@ func _on_web_ipc_message(msg: String) -> void:
 	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
+			"close":
+				close()
+				return
 			"save_css":
 				_save_css_draft(data)
 			"equip_bullet":
