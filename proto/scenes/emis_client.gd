@@ -2,14 +2,16 @@ extends Node
 class_name EmisClient
 
 @export var base_url: String = "http://127.0.0.1:8080"
-@export var chat_endpoint: String = ""
+@export var chat_endpoint: String = "/api/emis/chat"
 @export var timeout_seconds: float = 20.0
 @export var auto_discover_endpoint: bool = true
 @export var candidate_endpoints: PackedStringArray = PackedStringArray([
+	"/api/emis/chat",
 	"/chat",
 	"/api/chat",
 	"/v1/chat",
-	"/emis/chat"
+	"/emis/chat",
+	"/api/v1/emis/chat"
 ])
 
 var _resolved_endpoint: String = ""

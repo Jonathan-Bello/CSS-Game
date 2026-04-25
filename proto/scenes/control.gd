@@ -12,6 +12,7 @@ var last_svg: String = ""
 var last_bullet_profile_path: String = ""
 var _web_hydration_payload: Dictionary = {}
 var _emis_client: Node = null
+var _emis_conversation_id: String = ""
 
 signal overlay_opened
 signal overlay_closed
@@ -647,12 +648,7 @@ func _handle_chat_request(data: Dictionary) -> void:
 		incoming_context = raw_context
 
 	var context := _build_emis_context(incoming_context)
-	var contract_version := String(data.get("contract_version", String(context.get("contract_version", "emis_chat_v1"))))
-	var payload := {
-		"contract_version": contract_version,
-		"message": message,
-		"context": context
-	}
+	var payload := _build_emis_payload_for_backend(data, context, message)
 	print("[Emis] solicitud -> %s" % JSON.stringify(payload))
 
 	var response: Dictionary = {}
@@ -679,8 +675,74 @@ func _handle_chat_request(data: Dictionary) -> void:
 	if not bool(response.get("ok", false)):
 		push_warning("[Emis] error <- %s (%s)" % [String(response.get("error", "desconocido")), String(response.get("code", "unknown"))])
 	else:
+		_update_emis_conversation_id(response)
 		print("[Emis] respuesta <- %s" % JSON.stringify(response))
 	_send_emis_reply_to_web(response)
+
+func _build_emis_payload_for_backend(data: Dictionary, context: Dictionary, message: String) -> Dictionary:
+	var normalized_message := message.substr(0, min(message.length(), 1200))
+	var intent_mode := String(data.get("intent_mode", context.get("intent_mode", "auto"))).strip_edges().to_lower()
+	if intent_mode != "tutor_css" and intent_mode != "guia_juego":
+		intent_mode = "auto"
+
+	var player_context := _build_player_context_for_emis(data, context)
+	var css_snapshot_fragment := String(context.get("css_text", last_css)).strip_edges()
+	if css_snapshot_fragment.length() > 10000:
+		css_snapshot_fragment = css_snapshot_fragment.substr(0, 10000)
+
+	var payload := {
+		"message": normalized_message,
+		"intent_mode": intent_mode,
+		"player_context": player_context,
+		"css_snapshot_fragment": css_snapshot_fragment
+	}
+
+	if _emis_conversation_id == "":
+		_emis_conversation_id = _create_conversation_id()
+	if _emis_conversation_id != "":
+		payload["conversation_id"] = _emis_conversation_id
+
+	return payload
+
+func _build_player_context_for_emis(data: Dictionary, context: Dictionary) -> Dictionary:
+	var snapshot: Dictionary = {}
+	var raw_snapshot: Variant = context.get("snapshot", {})
+	if typeof(raw_snapshot) == TYPE_DICTIONARY:
+		snapshot = raw_snapshot
+
+	var player_context: Dictionary = {}
+	player_context["screen"] = String(data.get("screen", context.get("screen", "bullet_creator"))).strip_edges()
+	player_context["level"] = String(data.get("level", context.get("level", ""))).strip_edges()
+	player_context["objective"] = String(data.get("objective", context.get("objective", ""))).strip_edges()
+	player_context["zone_id"] = String(data.get("zone_id", context.get("zone_id", ""))).strip_edges()
+	player_context["quest_id"] = String(data.get("quest_id", context.get("quest_id", ""))).strip_edges()
+	player_context["quest_step"] = String(data.get("quest_step", context.get("quest_step", ""))).strip_edges()
+
+	var unlocked_css_raw: Variant = data.get("unlocked_css", context.get("unlocked_css", snapshot.get("detected_properties", [])))
+	player_context["unlocked_css"] = _to_packed_string_array(unlocked_css_raw)
+	player_context["nearby_npcs"] = _to_packed_string_array(data.get("nearby_npcs", context.get("nearby_npcs", [])))
+	player_context["available_portals"] = _to_packed_string_array(data.get("available_portals", context.get("available_portals", [])))
+	player_context["inventory_tags"] = _to_packed_string_array(data.get("inventory_tags", context.get("inventory_tags", [])))
+	player_context["failed_attempts_css"] = _to_packed_string_array(data.get("failed_attempts_css", context.get("failed_attempts_css", [])))
+	return player_context
+
+func _create_conversation_id() -> String:
+	return "conv_%s_%s" % [int(Time.get_unix_time_from_system()), Time.get_ticks_msec()]
+
+func _update_emis_conversation_id(response: Dictionary) -> void:
+	var raw: Dictionary = {}
+	var raw_response: Variant = response.get("raw", {})
+	if typeof(raw_response) == TYPE_DICTIONARY:
+		raw = raw_response
+
+	var from_raw := String(raw.get("conversation_id", "")).strip_edges()
+	if from_raw != "":
+		_emis_conversation_id = from_raw
+		return
+
+	var from_top_level := String(response.get("conversation_id", "")).strip_edges()
+	if from_top_level != "":
+		_emis_conversation_id = from_top_level
 
 func _to_packed_string_array(raw: Variant) -> PackedStringArray:
 	if raw is PackedStringArray:
