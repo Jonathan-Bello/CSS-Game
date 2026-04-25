@@ -329,22 +329,22 @@ function pushChatMessage(role, text){
 
 function sendChatMessage(){
   if(!chatInputEl || chatWaitingReply) return;
-  const text = String(chatInputEl.value || '').trim();
-  if(!text) return;
-  pushChatMessage('user', text);
+  const message = String(chatInputEl.value || '').trim();
+  if(!message) return;
+  pushChatMessage('user', message);
   chatInputEl.value = '';
-  console.log('[Emis] envío:', text);
+  console.log('[Emis] envío:', message);
   setChatWaitingState(true);
 
-  const payload = {
-    type: 'emis_prompt',
-    message: text,
+  const context = {
     css: css ? css.value : '',
-    history: chatMessages
+    history: chatMessages,
+    bullet_equipped: bulletEquipped,
+    updated_at: bulletUpdatedAt
   };
 
   try{
-    ipc.postMessage(JSON.stringify(payload));
+    ipc.postMessage(JSON.stringify({ type: 'chat_request', message, context }));
   }catch(err){
     console.error('[Emis] error enviando prompt', err);
     pushChatMessage('emis', 'No pude enviar tu mensaje. Inténtalo de nuevo.');
@@ -620,6 +620,99 @@ func _on_web_ipc_message(msg: String) -> void:
 			"equip_bullet":
 				_save_and_equip_bullet(data)
 				close()
+			"chat_request":
+				_handle_chat_request(data)
+
+func _handle_chat_request(data: Dictionary) -> void:
+	var raw_message := String(data.get("message", ""))
+	var message := raw_message.strip_edges()
+	if message == "":
+		push_warning("[Emis] chat_request inválido: message vacío")
+		_send_emis_reply_to_web({
+			"error": "message vacío"
+		})
+		return
+
+	var incoming_context: Dictionary = {}
+	var raw_context: Variant = data.get("context", {})
+	if typeof(raw_context) == TYPE_DICTIONARY:
+		incoming_context = raw_context
+
+	var context := _build_emis_editor_context(incoming_context)
+	var payload := {
+		"message": message,
+		"context": context
+	}
+	print("[Emis] solicitud -> %s" % JSON.stringify(payload))
+
+	var response: Dictionary = {}
+	var client := _get_emis_client()
+	if client == null:
+		var no_client_msg := "Cliente Emis no disponible"
+		push_warning("[Emis] " + no_client_msg)
+		response = {"error": no_client_msg}
+	elif client.has_method("request_chat"):
+		var result: Variant = await client.call("request_chat", message, context)
+		if typeof(result) == TYPE_DICTIONARY:
+			response = result
+		else:
+			response = {"error": "Respuesta inválida del cliente Emis"}
+	elif client.has_method("chat_request"):
+		var alt_result: Variant = await client.call("chat_request", payload)
+		if typeof(alt_result) == TYPE_DICTIONARY:
+			response = alt_result
+		else:
+			response = {"error": "Respuesta inválida del cliente Emis"}
+	else:
+		response = {"error": "Cliente Emis sin método de chat compatible"}
+
+	if response.has("error"):
+		push_warning("[Emis] error <- %s" % String(response.get("error", "desconocido")))
+	else:
+		print("[Emis] respuesta <- %s" % JSON.stringify(response))
+	_send_emis_reply_to_web(response)
+
+func _build_emis_editor_context(incoming_context: Dictionary) -> Dictionary:
+	var context := incoming_context.duplicate(true)
+	var hydration := _read_bullet_hydration_payload()
+	var css_text := String(context.get("css", ""))
+	if css_text == "":
+		css_text = String(hydration.get("css_text", last_css))
+
+	var svg_text := String(hydration.get("svg_text", ""))
+	if svg_text == "":
+		svg_text = last_svg
+
+	context["css"] = css_text
+	context["svg"] = svg_text
+	context["bullet_equipped"] = bool(hydration.get("bullet_equipped", false))
+	context["updated_at"] = String(hydration.get("updated_at", ""))
+	context["locked_properties"] = _get_locked_properties_from_singleton(css_text)
+	context["unlock_state"] = _get_unlock_state_from_singleton()
+	context["all_properties"] = _get_all_properties_from_singleton()
+	return context
+
+func _get_emis_client() -> Node:
+	var root := get_tree().root
+	if root == null:
+		return null
+	var by_name := root.get_node_or_null("EmisClient")
+	if by_name != null:
+		return by_name
+	var by_group := get_tree().get_first_node_in_group("emis_client")
+	if by_group != null:
+		return by_group
+	return null
+
+func _send_emis_reply_to_web(payload: Dictionary) -> void:
+	if not web.has_method("eval"):
+		push_warning("[Emis] WebView sin método eval para responder")
+		return
+	var safe_payload := payload
+	if safe_payload.is_empty():
+		safe_payload = {"error": "Respuesta vacía del backend Emis"}
+	var js := "window.onEmisReply(%s);" % JSON.stringify(safe_payload)
+	web.call_deferred("eval", js)
 
 func _save_css_draft(data: Dictionary) -> void:
 	last_css = String(data.get("css", ""))
