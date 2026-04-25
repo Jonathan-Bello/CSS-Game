@@ -3,7 +3,7 @@ class_name EmisClient
 
 @export var base_url: String = "http://127.0.0.1:8080"
 @export var chat_endpoint: String = "/chat"
-@export var timeout_seconds: float = 10.0
+@export var timeout_seconds: float = 20.0
 
 func request_chat(payload: Dictionary) -> Dictionary:
 	if payload.is_empty():
@@ -15,6 +15,8 @@ func request_chat(payload: Dictionary) -> Dictionary:
 
 	var endpoint := _resolve_endpoint()
 	var body := JSON.stringify(payload)
+	var request_started_msec := Time.get_ticks_msec()
+	print("[Emis] request -> %s (payload=%s bytes, timeout=%ss)" % [endpoint, body.length(), timeout_seconds])
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
 		"Accept: application/json"
@@ -26,8 +28,10 @@ func request_chat(payload: Dictionary) -> Dictionary:
 		push_warning("[Emis] Falló request() con código %s" % request_error)
 		return _error_result("No pude conectar con Emis en este momento.", "network")
 
-	var response := await _await_http_response(http)
+	var response := await _await_http_response(http, endpoint)
 	http.queue_free()
+	var elapsed_ms := max(0, Time.get_ticks_msec() - request_started_msec)
+	print("[Emis] request <- elapsed=%sms code=%s ok=%s" % [elapsed_ms, String(response.get("code", "")), String(response.get("ok", false))])
 
 	if not bool(response.get("ok", false)):
 		return {
@@ -77,7 +81,7 @@ func _resolve_endpoint() -> String:
 
 	return normalized_base + normalized_endpoint
 
-func _await_http_response(http: HTTPRequest) -> Dictionary:
+func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
 	var done := false
 	var timed_out := false
 	var packet := {
@@ -100,7 +104,7 @@ func _await_http_response(http: HTTPRequest) -> Dictionary:
 
 	if timed_out:
 		http.cancel_request()
-		push_warning("[Emis] timeout alcanzado (%ss)" % timeout_seconds)
+		push_warning("[Emis] timeout alcanzado (%ss) endpoint=%s" % [timeout_seconds, endpoint])
 		return _error_result("Emis tardó demasiado en responder.", "timeout")
 
 	return packet

@@ -275,6 +275,7 @@ let bulletEquipped = false;
 let bulletUpdatedAt = '';
 let chatMessages = [{role:'emis', text:'¡Hola! Soy Emis. ¿Qué mejora quieres probar en tu bala?'}];
 let chatWaitingReply = false;
+const EMIS_CHAT_CONTRACT_VERSION = 'emis_chat_v1';
 
 function getStyleEl(){
   return document.getElementById('styleEl');
@@ -339,15 +340,29 @@ function sendChatMessage(){
   console.log('[Emis] envío:', message);
   setChatWaitingState(true);
 
-  const context = {
-    css: css ? css.value : '',
-    history: chatMessages,
+  const detectedProps = getDetectedProperties(css ? css.value : '');
+  const lockedProps = getLockedPropertiesFromCss(css ? css.value : '');
+  const snapshot = {
+    ...exportState(),
+    detected_properties: detectedProps,
+    locked_properties: lockedProps,
+    unlock_state: unlockState,
     bullet_equipped: bulletEquipped,
     updated_at: bulletUpdatedAt
   };
+  const context = {
+    contract_version: EMIS_CHAT_CONTRACT_VERSION,
+    history: chatMessages,
+    snapshot
+  };
 
   try{
-    ipc.postMessage(JSON.stringify({ type: 'chat_request', message, context }));
+    ipc.postMessage(JSON.stringify({
+      type: 'chat_request',
+      contract_version: EMIS_CHAT_CONTRACT_VERSION,
+      message,
+      context
+    }));
   }catch(err){
     console.error('[Emis] error enviando prompt', err);
     pushChatMessage('emis', 'No pude enviar tu mensaje. Inténtalo de nuevo.');
@@ -631,8 +646,10 @@ func _handle_chat_request(data: Dictionary) -> void:
 	if typeof(raw_context) == TYPE_DICTIONARY:
 		incoming_context = raw_context
 
-	var context := _build_emis_editor_context(incoming_context)
+	var context := _build_emis_context(incoming_context)
+	var contract_version := String(data.get("contract_version", String(context.get("contract_version", "emis_chat_v1"))))
 	var payload := {
+		"contract_version": contract_version,
 		"message": message,
 		"context": context
 	}
@@ -665,24 +682,91 @@ func _handle_chat_request(data: Dictionary) -> void:
 		print("[Emis] respuesta <- %s" % JSON.stringify(response))
 	_send_emis_reply_to_web(response)
 
-func _build_emis_editor_context(incoming_context: Dictionary) -> Dictionary:
-	var context := incoming_context.duplicate(true)
+func _to_packed_string_array(raw: Variant) -> PackedStringArray:
+	if raw is PackedStringArray:
+		return raw
+	if raw is Array:
+		var mapped := PackedStringArray()
+		for item in raw:
+			var value := String(item).strip_edges().to_lower()
+			if value != "":
+				mapped.append(value)
+		return mapped
+	return PackedStringArray()
+
+func _build_emis_context(data_from_js: Dictionary) -> Dictionary:
+	# Contrato estable emis_chat_v1:
+	# {
+	#   contract_version: String,
+	#   css_text: String,
+	#   svg_text: String,
+	#   bullet_equipped: bool,
+	#   updated_at: String,
+	#   detected_properties: PackedStringArray,
+	#   css_rules: PackedStringArray,
+	#   locked_properties: PackedStringArray,
+	#   unlock_state: Dictionary,
+	#   all_properties: PackedStringArray,
+	#   history: Array[Dictionary]?,
+	#   snapshot: Dictionary
+	# }
+	var context := data_from_js.duplicate(true)
 	var hydration := _read_bullet_hydration_payload()
-	var css_text := String(context.get("css", ""))
+	var snapshot: Dictionary = {}
+	var raw_snapshot: Variant = context.get("snapshot", {})
+	if typeof(raw_snapshot) == TYPE_DICTIONARY:
+		snapshot = raw_snapshot
+
+	var css_text := String(snapshot.get("css_text", String(context.get("css_text", context.get("css", "")))))
 	if css_text == "":
 		css_text = String(hydration.get("css_text", last_css))
 
-	var svg_text := String(hydration.get("svg_text", ""))
+	var svg_text := String(snapshot.get("svg_text", String(context.get("svg_text", context.get("svg", "")))))
+	if svg_text == "":
+		svg_text = String(hydration.get("svg_text", ""))
 	if svg_text == "":
 		svg_text = last_svg
 
+	var detected_from_js := _to_packed_string_array(snapshot.get("detected_properties", context.get("detected_properties", [])))
+	var detected_backend := _extract_css_rules(css_text)
+	var detected_properties := detected_from_js if not detected_from_js.is_empty() else detected_backend
+
+	var locked_from_js := _to_packed_string_array(snapshot.get("locked_properties", context.get("locked_properties", [])))
+	var locked_backend := _get_locked_properties_from_singleton(css_text)
+	var locked_properties := locked_from_js if not locked_from_js.is_empty() else locked_backend
+
+	var unlock_state := _get_unlock_state_from_singleton()
+	var unlock_state_from_js: Variant = snapshot.get("unlock_state", context.get("unlock_state", {}))
+	if typeof(unlock_state_from_js) == TYPE_DICTIONARY:
+		var from_js_dict: Dictionary = unlock_state_from_js
+		if not from_js_dict.is_empty():
+			unlock_state = from_js_dict
+
+	var bullet_equipped := bool(snapshot.get("bullet_equipped", context.get("bullet_equipped", hydration.get("bullet_equipped", false))))
+	var updated_at := String(snapshot.get("updated_at", context.get("updated_at", hydration.get("updated_at", ""))))
+
+	context["contract_version"] = String(context.get("contract_version", "emis_chat_v1"))
+	context["css_text"] = css_text
+	context["svg_text"] = svg_text
 	context["css"] = css_text
 	context["svg"] = svg_text
-	context["bullet_equipped"] = bool(hydration.get("bullet_equipped", false))
-	context["updated_at"] = String(hydration.get("updated_at", ""))
-	context["locked_properties"] = _get_locked_properties_from_singleton(css_text)
-	context["unlock_state"] = _get_unlock_state_from_singleton()
+	context["bullet_equipped"] = bullet_equipped
+	context["updated_at"] = updated_at
+	context["detected_properties"] = detected_properties
+	context["css_rules"] = detected_backend
+	context["locked_properties"] = locked_properties
+	context["unlock_state"] = unlock_state
 	context["all_properties"] = _get_all_properties_from_singleton()
+
+	context["snapshot"] = {
+		"css_text": css_text,
+		"svg_text": svg_text,
+		"detected_properties": detected_properties,
+		"locked_properties": locked_properties,
+		"unlock_state": unlock_state,
+		"bullet_equipped": bullet_equipped,
+		"updated_at": updated_at
+	}
 	return context
 
 func _ensure_emis_client() -> void:
