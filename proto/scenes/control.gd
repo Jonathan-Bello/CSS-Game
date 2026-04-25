@@ -188,7 +188,14 @@ func _load_editor_html() -> void:
   .chat-shell{grid-column:3;display:grid;grid-template-rows:auto 1fr auto;gap:8px;background:linear-gradient(145deg,#131e37,#0d1529);border:1px solid #314266;border-radius:14px;padding:12px;box-shadow:0 12px 26px rgba(0,0,0,.35);min-height:0}
   .chat-shell h3{margin:0;font-size:14px;color:#ffd57f}
   .chat-shell p{margin:0;color:#bfd0f5;font-size:12px;line-height:1.45}
-  .chat-placeholder{border:1px dashed #4a5f8d;border-radius:10px;background:#0a1020aa;display:flex;align-items:center;justify-content:center;color:#90a8db;font-size:12px;padding:12px;text-align:center}
+  .chat-messages{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0;padding-right:2px}
+  .chat-bubble{max-width:92%;padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.4;word-break:break-word;border:1px solid transparent}
+  .chat-bubble.user{margin-left:auto;background:#23406f;color:#e6f1ff;border-color:#36578f}
+  .chat-bubble.emis{margin-right:auto;background:#191f34;color:#ffe8b6;border-color:#424f7a}
+  .chat-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .chat-input-row input{background:#0b1222;color:#fff;border:1px solid #345;border-radius:8px;padding:8px}
+  .chat-typing{font-size:11px;color:#ffde9f;min-height:16px}
+  .chat-typing.hidden{visibility:hidden}
   svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
 </style></head>
 <body>
@@ -233,10 +240,13 @@ svg{width:180px;height:180px}
         </div>
       </div>
 	  <aside class="chat-shell">
-		<h3>💬 Emmys (chatbot)</h3>
-		<p>Espacio reservado para el asistente conversacional. Esta columna queda preparada para integrar prompts, historial y tips del CSS en próximas iteraciones.</p>
-		<div class="chat-placeholder">
-		  Próximamente: chat de Emmys con sugerencias contextuales de daño/estilo.
+		<h3>💬 Emis (chatbot)</h3>
+		<p>Comparte ideas de estilo y daño. Emis responderá con sugerencias para tu bala actual.</p>
+		<div id="chatMessages" class="chat-messages"></div>
+		<div id="chatTyping" class="chat-typing hidden">Emis escribiendo…</div>
+		<div class="chat-input-row">
+		  <input id="chatInput" type="text" maxlength="240" placeholder="Pregúntale a Emis sobre este CSS"/>
+		  <button id="chatSend">Enviar</button>
 		</div>
 	  </aside>
     </div>
@@ -249,6 +259,10 @@ const equipIndicator = document.getElementById('equipIndicator');
 const updateIndicator = document.getElementById('updateIndicator');
 const countIndicator = document.getElementById('countIndicator');
 const detectedList = document.getElementById('detectedList');
+const chatMessagesEl = document.getElementById('chatMessages');
+const chatInputEl = document.getElementById('chatInput');
+const chatSendEl = document.getElementById('chatSend');
+const chatTypingEl = document.getElementById('chatTyping');
 const DEFAULT_CSS = `/* edita el estilo */
 svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}`;
@@ -256,6 +270,8 @@ let unlockState = {};
 let allProperties = [];
 let bulletEquipped = false;
 let bulletUpdatedAt = '';
+let chatMessages = [{role:'emis', text:'¡Hola! Soy Emis. ¿Qué mejora quieres probar en tu bala?'}];
+let chatWaitingReply = false;
 
 function getStyleEl(){
   return document.getElementById('styleEl');
@@ -279,6 +295,93 @@ function escapeHtml(raw){
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
+
+function setChatWaitingState(waiting){
+  chatWaitingReply = Boolean(waiting);
+  if(chatInputEl) chatInputEl.disabled = chatWaitingReply;
+  if(chatSendEl) chatSendEl.disabled = chatWaitingReply;
+  if(chatTypingEl){
+    chatTypingEl.classList.toggle('hidden', !chatWaitingReply);
+  }
+}
+
+function renderChatMessages(){
+  if(!chatMessagesEl) return;
+  if(!chatMessages.length){
+    chatMessagesEl.innerHTML = '<div class="chat-bubble emis">Sin mensajes todavía.</div>';
+    return;
+  }
+  chatMessagesEl.innerHTML = chatMessages.map((message)=>{
+    const role = message && message.role === 'user' ? 'user' : 'emis';
+    const text = message && typeof message.text === 'string' ? message.text : '';
+    return `<div class="chat-bubble ${role}">${escapeHtml(text)}</div>`;
+  }).join('');
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+}
+
+function pushChatMessage(role, text){
+  if(typeof text !== 'string') return;
+  const normalized = text.trim();
+  if(!normalized) return;
+  chatMessages.push({role: role === 'user' ? 'user' : 'emis', text: normalized});
+  renderChatMessages();
+}
+
+function sendChatMessage(){
+  if(!chatInputEl || chatWaitingReply) return;
+  const text = String(chatInputEl.value || '').trim();
+  if(!text) return;
+  pushChatMessage('user', text);
+  chatInputEl.value = '';
+  console.log('[Emis] envío:', text);
+  setChatWaitingState(true);
+
+  const payload = {
+    type: 'emis_prompt',
+    message: text,
+    css: css ? css.value : '',
+    history: chatMessages
+  };
+
+  try{
+    ipc.postMessage(JSON.stringify(payload));
+  }catch(err){
+    console.error('[Emis] error enviando prompt', err);
+    pushChatMessage('emis', 'No pude enviar tu mensaje. Inténtalo de nuevo.');
+    setChatWaitingState(false);
+  }
+}
+
+window.onEmisReply = function(payload){
+  try{
+    if(!payload || typeof payload !== 'object'){
+      throw new Error('payload inválido');
+    }
+
+    if(payload.error){
+      console.error('[Emis] respuesta con error:', payload.error);
+      pushChatMessage('emis', 'Tuvimos un problema al responder. Intenta en unos segundos.');
+      return;
+    }
+
+    const replyText = typeof payload.message === 'string'
+      ? payload.message
+      : (typeof payload.reply === 'string' ? payload.reply : '');
+
+    if(!replyText.trim()){
+      throw new Error('respuesta vacía');
+    }
+
+    console.log('[Emis] recepción:', replyText);
+    pushChatMessage('emis', replyText);
+  }catch(err){
+    console.error('[Emis] error procesando respuesta', err);
+    pushChatMessage('emis', 'No pude entender la respuesta de Emis. Vuelve a intentarlo.');
+  }finally{
+    setChatWaitingState(false);
+    if(chatInputEl) chatInputEl.focus();
+  }
+};
 
 function getLockedPropertiesFromCss(text){
   const found = getDetectedProperties(text)
@@ -395,6 +498,19 @@ function exportState(){
   };
 }
 
+renderChatMessages();
+if(chatSendEl){
+  chatSendEl.addEventListener('click', sendChatMessage);
+}
+if(chatInputEl){
+  chatInputEl.addEventListener('keydown', (event)=>{
+    if(event.key === 'Enter'){
+      event.preventDefault();
+      sendChatMessage();
+    }
+  });
+}
+setChatWaitingState(false);
 updateIndicators();
 
 function setTpl(kind){
