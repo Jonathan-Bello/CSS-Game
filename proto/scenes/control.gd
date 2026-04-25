@@ -1,5 +1,6 @@
 extends Control
 
+const EmisClientScript = preload("res://proto/scenes/emis_client.gd")
 @onready var panel: PanelContainer = $PanelContainer
 @onready var web: Control = $PanelContainer/WebView
 
@@ -10,6 +11,7 @@ var last_css: String = ""
 var last_svg: String = ""
 var last_bullet_profile_path: String = ""
 var _web_hydration_payload: Dictionary = {}
+var _emis_client: Node = null
 
 signal overlay_opened
 signal overlay_closed
@@ -28,6 +30,7 @@ func _ready() -> void:
 	if not web.is_connected("ipc_message", Callable(self , "_on_web_ipc_message")):
 		web.connect("ipc_message", Callable(self , "_on_web_ipc_message"))
 
+	_ensure_emis_client()
 	_layout_and_sync()
 	print("[WebOverlay] READY")
 
@@ -629,7 +632,9 @@ func _handle_chat_request(data: Dictionary) -> void:
 	if message == "":
 		push_warning("[Emis] chat_request inválido: message vacío")
 		_send_emis_reply_to_web({
-			"error": "message vacío"
+			"ok": false,
+			"error": "message vacío",
+			"code": "invalid_response"
 		})
 		return
 
@@ -650,24 +655,24 @@ func _handle_chat_request(data: Dictionary) -> void:
 	if client == null:
 		var no_client_msg := "Cliente Emis no disponible"
 		push_warning("[Emis] " + no_client_msg)
-		response = {"error": no_client_msg}
+		response = {"ok": false, "error": no_client_msg, "code": "network"}
 	elif client.has_method("request_chat"):
-		var result: Variant = await client.call("request_chat", message, context)
+		var result: Variant = await client.call("request_chat", payload)
 		if typeof(result) == TYPE_DICTIONARY:
 			response = result
 		else:
-			response = {"error": "Respuesta inválida del cliente Emis"}
+			response = {"ok": false, "error": "Respuesta inválida del cliente Emis", "code": "invalid_response"}
 	elif client.has_method("chat_request"):
 		var alt_result: Variant = await client.call("chat_request", payload)
 		if typeof(alt_result) == TYPE_DICTIONARY:
 			response = alt_result
 		else:
-			response = {"error": "Respuesta inválida del cliente Emis"}
+			response = {"ok": false, "error": "Respuesta inválida del cliente Emis", "code": "invalid_response"}
 	else:
-		response = {"error": "Cliente Emis sin método de chat compatible"}
+		response = {"ok": false, "error": "Cliente Emis sin método de chat compatible", "code": "invalid_response"}
 
-	if response.has("error"):
-		push_warning("[Emis] error <- %s" % String(response.get("error", "desconocido")))
+	if not bool(response.get("ok", false)):
+		push_warning("[Emis] error <- %s (%s)" % [String(response.get("error", "desconocido")), String(response.get("code", "unknown"))])
 	else:
 		print("[Emis] respuesta <- %s" % JSON.stringify(response))
 	_send_emis_reply_to_web(response)
@@ -692,7 +697,20 @@ func _build_emis_editor_context(incoming_context: Dictionary) -> Dictionary:
 	context["all_properties"] = _get_all_properties_from_singleton()
 	return context
 
+func _ensure_emis_client() -> void:
+	if is_instance_valid(_emis_client):
+		return
+	_emis_client = EmisClientScript.new()
+	_emis_client.name = "EmisClient"
+	add_child(_emis_client)
+	if _emis_client.has_method("add_to_group"):
+		_emis_client.call("add_to_group", "emis_client")
+	print("[Emis] Cliente local inicializado")
+
 func _get_emis_client() -> Node:
+	if is_instance_valid(_emis_client):
+		return _emis_client
+
 	var root := get_tree().root
 	if root == null:
 		return null
