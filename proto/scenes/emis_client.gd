@@ -200,6 +200,7 @@ func _request_json(endpoint: String, method: int, body: String, headers: PackedS
 	var http := _create_http_request()
 	if http == null:
 		return _error_result("No se pudo crear el cliente HTTP.", "network")
+	http.timeout = max(timeout_seconds, 0.1)
 
 	var request_started_msec := Time.get_ticks_msec()
 	print("[Emis] request -> %s (method=%s, payload=%s bytes, timeout=%ss)" % [endpoint, method, body.length(), timeout_seconds])
@@ -216,33 +217,17 @@ func _request_json(endpoint: String, method: int, body: String, headers: PackedS
 	return response
 
 func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
-	var done := {"value": false}
-	var timed_out := false
-	var packet := {
-		"ok": false,
-		"error": "No response",
-		"code": "network"
-	}
+	var completed: Array = await http.request_completed
+	if completed.size() < 4:
+		push_warning("[Emis] respuesta incompleta del request endpoint=%s" % endpoint)
+		return _error_result("La respuesta de Emis llegó incompleta.", "invalid_response")
 
-	var packet_ref := {"value": packet}
-	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-		done["value"] = true
-		packet_ref["value"] = _map_http_packet(result, response_code, body)
-	, CONNECT_ONE_SHOT)
-
-	var timer := get_tree().create_timer(max(timeout_seconds, 0.1))
-	while not done["value"] and not timed_out:
-		if timer.time_left <= 0.0:
-			timed_out = true
-			break
-		await get_tree().process_frame
-
-	if timed_out:
-		http.cancel_request()
+	var result := int(completed[0])
+	var response_code := int(completed[1])
+	var body := completed[3] as PackedByteArray
+	if result == HTTPRequest.RESULT_TIMEOUT:
 		push_warning("[Emis] timeout alcanzado (%ss) endpoint=%s" % [timeout_seconds, endpoint])
-		return _error_result("Emis tardó demasiado en responder.", "timeout")
-
-	return packet_ref["value"]
+	return _map_http_packet(result, response_code, body)
 
 func _map_http_packet(result: int, response_code: int, body: PackedByteArray) -> Dictionary:
 	var body_text := body.get_string_from_utf8()
