@@ -258,6 +258,40 @@ svg{width:180px;height:180px}
   </div>
 
 <script>
+(function(){
+  function sendDebug(kind, payload){
+    try{
+      payload = payload || {};
+      payload.type = kind;
+      ipc.postMessage(JSON.stringify(payload));
+    }catch(_e){}
+  }
+  window.__overlayDebugSend = sendDebug;
+  window.onerror = function(message, source, lineno, colno){
+    sendDebug('debug_js_error', {
+      message: String(message || ''),
+      source: String(source || ''),
+      line: Number(lineno || 0),
+      column: Number(colno || 0)
+    });
+  };
+  window.onunhandledrejection = function(event){
+    const reason = event && event.reason ? String(event.reason) : 'unknown rejection';
+    sendDebug('debug_js_error', {message: reason, source: 'promise', line: 0, column: 0});
+  };
+  document.addEventListener('click', function(ev){
+    const target = ev && ev.target ? ev.target : null;
+    if(!target) return;
+    const fnName = String(target.getAttribute('onclick') || '').replace('()', '').trim();
+    if(!fnName) return;
+    const exists = typeof window[fnName] === 'function';
+    if(!exists){
+      sendDebug('debug_js_log', {message: 'onclick missing function: ' + fnName});
+    }
+  }, true);
+})();
+</script>
+<script>
 const css = document.getElementById('css');
 const svg = document.getElementById('svg');
 const equipIndicator = document.getElementById('equipIndicator');
@@ -278,18 +312,6 @@ let bulletUpdatedAt = '';
 let chatMessages = [{role:'emis', text:'¡Hola! Soy Emis. ¿Qué mejora quieres probar en tu bala?'}];
 let chatWaitingReply = false;
 const EMIS_CHAT_CONTRACT_VERSION = 'emis_chat_v1';
-
-window.onerror = function(message, source, lineno, colno){
-  try{
-    ipc.postMessage(JSON.stringify({
-      type: 'debug_js_error',
-      message: String(message || ''),
-      source: String(source || ''),
-      line: Number(lineno || 0),
-      column: Number(colno || 0)
-    }));
-  }catch(_e){}
-};
 
 function getStyleEl(){
   return document.getElementById('styleEl');
@@ -788,6 +810,8 @@ func _on_web_ipc_message(msg: String) -> void:
 	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
+			"debug_js_log":
+				print("[WebOverlay][JS][log] %s" % String(data.get("message", "")))
 			"debug_js_error":
 				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [
 					String(data.get("message", "")),
