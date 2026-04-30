@@ -279,6 +279,18 @@ let chatMessages = [{role:'emis', text:'¡Hola! Soy Emis. ¿Qué mejora quieres 
 let chatWaitingReply = false;
 const EMIS_CHAT_CONTRACT_VERSION = 'emis_chat_v1';
 
+window.onerror = function(message, source, lineno, colno){
+  try{
+    ipc.postMessage(JSON.stringify({
+      type: 'debug_js_error',
+      message: String(message || ''),
+      source: String(source || ''),
+      line: Number(lineno || 0),
+      column: Number(colno || 0)
+    }));
+  }catch(_e){}
+};
+
 function getStyleEl(){
   return document.getElementById('styleEl');
 }
@@ -448,9 +460,10 @@ function extractReplyFromJsonLikeText(text){
   return out.trim();
 }
 
-async function pushChatMessageTyping(role, text){
+function pushChatMessageTyping(role, text, onDone){
   const normalized = String(text || '').trim();
   if(!normalized){
+    if(typeof onDone === 'function') onDone();
     return;
   }
   const safeRole = role === 'user' ? 'user' : 'emis';
@@ -460,13 +473,19 @@ async function pushChatMessageTyping(role, text){
   const total = normalized.length;
   const step = total > 260 ? 3 : (total > 120 ? 2 : 1);
   const delayMs = 12;
-  for(let i = step; i <= total; i += step){
-    chatMessages[chatMessages.length - 1].text = normalized.slice(0, i);
+  let index = step;
+  const ticker = setInterval(()=>{
+    if(index >= total){
+      chatMessages[chatMessages.length - 1].text = normalized;
+      renderChatMessages();
+      clearInterval(ticker);
+      if(typeof onDone === 'function') onDone();
+      return;
+    }
+    chatMessages[chatMessages.length - 1].text = normalized.slice(0, index);
     renderChatMessages();
-    await new Promise((resolve)=>setTimeout(resolve, delayMs));
-  }
-  chatMessages[chatMessages.length - 1].text = normalized;
-  renderChatMessages();
+    index += step;
+  }, delayMs);
 }
 
 function sendChatMessage(){
@@ -508,7 +527,8 @@ function sendChatMessage(){
   }
 }
 
-window.onEmisReply = async function(payload){
+window.onEmisReply = function(payload){
+  let finalizeOnExit = true;
   try{
     if(!payload || typeof payload !== 'object'){
       throw new Error('payload inválido');
@@ -527,13 +547,20 @@ window.onEmisReply = async function(payload){
     }
 
     console.log('[Emis] recepción:', replyText);
-    await pushChatMessageTyping('emis', replyText);
+    finalizeOnExit = false;
+    pushChatMessageTyping('emis', replyText, ()=>{
+      setChatWaitingState(false);
+      if(chatInputEl) chatInputEl.focus();
+    });
+    return;
   }catch(err){
     console.error('[Emis] error procesando respuesta', err);
     pushChatMessage('emis', 'No pude entender la respuesta de Emis. Vuelve a intentarlo.');
   }finally{
-    setChatWaitingState(false);
-    if(chatInputEl) chatInputEl.focus();
+    if(finalizeOnExit){
+      setChatWaitingState(false);
+      if(chatInputEl) chatInputEl.focus();
+    }
   }
 };
 
@@ -760,6 +787,13 @@ func _on_web_ipc_message(msg: String) -> void:
 	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
 		match String(data.get("type", "")):
+			"debug_js_error":
+				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [
+					String(data.get("message", "")),
+					String(data.get("source", "")),
+					String(data.get("line", "")),
+					String(data.get("column", ""))
+				])
 			"close":
 				close()
 				return
