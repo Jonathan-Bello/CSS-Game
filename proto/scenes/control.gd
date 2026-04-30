@@ -282,10 +282,36 @@ function getStyleEl(){
   return document.getElementById('styleEl');
 }
 
+function clampBulletSize(value){
+  const n = Number(value);
+  if(!Number.isFinite(n)) return 180;
+  return Math.max(10, Math.min(200, Math.round(n)));
+}
+
+function readBulletSizeFromCss(rawCss){
+  const text = String(rawCss || '');
+  const widthMatch = text.match(/(?:^|[\s{;])width\s*:\s*([0-9]+(?:\.[0-9]+)?)px/i);
+  const heightMatch = text.match(/(?:^|[\s{;])height\s*:\s*([0-9]+(?:\.[0-9]+)?)px/i);
+  const width = clampBulletSize(widthMatch ? widthMatch[1] : 180);
+  const height = clampBulletSize(heightMatch ? heightMatch[1] : width);
+  return {width, height};
+}
+
+function buildPreviewCss(rawCss){
+  const size = readBulletSizeFromCss(rawCss);
+  const scopedCss = String(rawCss || '').replace(/(^|[^#.\w-])svg(?=\s*[{,#.:\s])/g, '$1#svg');
+  return {
+    css: `${scopedCss}\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
+    width: size.width,
+    height: size.height
+  };
+}
+
 function applyCssToPreview(){
   const liveStyle = getStyleEl();
   if(!liveStyle) return;
-  liveStyle.textContent = css.value;
+  const previewCss = buildPreviewCss(css.value);
+  liveStyle.textContent = previewCss.css;
   renderDetectedProperties();
 }
 
@@ -632,22 +658,28 @@ function saveDraft(){
 }
 
 function equipBullet(){
+  const bulletSize = readBulletSizeFromCss(css.value);
   const clone = svg.cloneNode(true);
   const cloneStyle = clone.querySelector('#styleEl');
   if(cloneStyle){
-    cloneStyle.textContent = css.value;
+    const previewCss = buildPreviewCss(css.value);
+    cloneStyle.textContent = previewCss.css;
   }
   const txt = new XMLSerializer().serializeToString(clone);
   const blob = new Blob([txt], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
   const img = new Image();
   img.onload = ()=>{
-    const maxSize = 150;
+    const maxSize = 200;
     const sourceW = Math.max(1, img.naturalWidth || 256);
     const sourceH = Math.max(1, img.naturalHeight || 256);
+    const targetW = clampBulletSize(bulletSize.width);
+    const targetH = clampBulletSize(bulletSize.height);
     const ratio = Math.min(1, maxSize / Math.max(sourceW, sourceH));
-    const outW = Math.max(1, Math.round(sourceW * ratio));
-    const outH = Math.max(1, Math.round(sourceH * ratio));
+    const sampledW = Math.max(1, Math.round(sourceW * ratio));
+    const sampledH = Math.max(1, Math.round(sourceH * ratio));
+    const outW = clampBulletSize(Math.min(targetW, sampledW));
+    const outH = clampBulletSize(Math.min(targetH, sampledH));
 
     const c = document.createElement('canvas');
     c.width = outW;
