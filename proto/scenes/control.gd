@@ -332,6 +332,45 @@ function pushChatMessage(role, text){
   renderChatMessages();
 }
 
+function normalizeEmisReplyText(payload){
+  if(!payload || typeof payload !== 'object') return '';
+  let raw = typeof payload.reply === 'string' ? payload.reply : '';
+  if(!raw && typeof payload.message === 'string') raw = payload.message;
+  const normalized = String(raw || '').trim();
+  if(!normalized) return '';
+
+  if(normalized.startsWith('{') && normalized.includes('"reply"')){
+    try{
+      const parsed = JSON.parse(normalized);
+      if(parsed && typeof parsed.reply === 'string' && parsed.reply.trim()){
+        return parsed.reply.trim();
+      }
+    }catch(_err){}
+  }
+  return normalized;
+}
+
+async function pushChatMessageTyping(role, text){
+  const normalized = String(text || '').trim();
+  if(!normalized){
+    return;
+  }
+  const safeRole = role === 'user' ? 'user' : 'emis';
+  chatMessages.push({role: safeRole, text: ''});
+  renderChatMessages();
+
+  const total = normalized.length;
+  const step = total > 260 ? 3 : (total > 120 ? 2 : 1);
+  const delayMs = 12;
+  for(let i = step; i <= total; i += step){
+    chatMessages[chatMessages.length - 1].text = normalized.slice(0, i);
+    renderChatMessages();
+    await new Promise((resolve)=>setTimeout(resolve, delayMs));
+  }
+  chatMessages[chatMessages.length - 1].text = normalized;
+  renderChatMessages();
+}
+
 function sendChatMessage(){
   if(!chatInputEl || chatWaitingReply) return;
   const message = String(chatInputEl.value || '').trim();
@@ -371,7 +410,7 @@ function sendChatMessage(){
   }
 }
 
-window.onEmisReply = function(payload){
+window.onEmisReply = async function(payload){
   try{
     if(!payload || typeof payload !== 'object'){
       throw new Error('payload inválido');
@@ -383,16 +422,14 @@ window.onEmisReply = function(payload){
       return;
     }
 
-    const replyText = typeof payload.message === 'string'
-      ? payload.message
-      : (typeof payload.reply === 'string' ? payload.reply : '');
+    const replyText = normalizeEmisReplyText(payload);
 
     if(!replyText.trim()){
       throw new Error('respuesta vacía');
     }
 
     console.log('[Emis] recepción:', replyText);
-    pushChatMessage('emis', replyText);
+    await pushChatMessageTyping('emis', replyText);
   }catch(err){
     console.error('[Emis] error procesando respuesta', err);
     pushChatMessage('emis', 'No pude entender la respuesta de Emis. Vuelve a intentarlo.');
