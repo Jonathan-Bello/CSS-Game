@@ -310,8 +310,10 @@ function readBulletSizeFromCss(rawCss){
     }
     return Number(digits);
   };
-  const width = clampBulletSize(parsePxValue('width') ?? 180);
-  const height = clampBulletSize(parsePxValue('height') ?? width);
+  const parsedWidth = parsePxValue('width');
+  const width = clampBulletSize(parsedWidth == null ? 180 : parsedWidth);
+  const parsedHeight = parsePxValue('height');
+  const height = clampBulletSize(parsedHeight == null ? width : parsedHeight);
   return {width, height};
 }
 
