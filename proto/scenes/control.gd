@@ -166,7 +166,7 @@ func _load_editor_html() -> void:
 <!doctype html>
 <html><head><meta charset="utf-8"/>
 <style>
-  html,body{margin:0;background:transparent;color:#fff;font-family:sans-serif}
+  html,body{margin:0;background:transparent;color:#fff;font-family:'Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
   .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
   .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
   button{background:#4a90e2;border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
@@ -181,7 +181,7 @@ func _load_editor_html() -> void:
   .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(320px,.9fr);gap:10px;padding:10px;box-sizing:border-box;height:100%;min-height:0}
   .workbench{grid-column:1 / span 2;display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}
   .editor{display:grid;grid-template-rows:auto auto;gap:10px;min-height:0}
-  textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+  textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:'Quantico',ui-monospace,SFMono-Regular,Menlo,monospace}
   .code-hint{font-size:12px;color:#ffb4bf;margin:0}
   .prop-panel{background:linear-gradient(145deg,#121d34,#0f162a);border:1px solid #314266;border-radius:10px;padding:10px}
   .prop-panel h3{margin:0 0 8px;font-size:13px;color:#d5e4ff}
