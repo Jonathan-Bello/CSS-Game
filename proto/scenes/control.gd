@@ -459,11 +459,11 @@ function extractReplyFromJsonLikeText(text){
     const ch = text[i];
     if(escaped){
       switch(ch){
-        case 'n': out += '\n'; break;
-        case 't': out += '\t'; break;
-        case 'r': out += '\r'; break;
+        case 'n': out += '\\n'; break;
+        case 't': out += '\\t'; break;
+        case 'r': out += '\\r'; break;
         case '"': out += '"'; break;
-        case '\\': out += '\\'; break;
+        case '\\': out += '\\\\'; break;
         default: out += ch; break;
       }
       escaped = false;
