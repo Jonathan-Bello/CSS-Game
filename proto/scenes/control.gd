@@ -457,23 +457,22 @@ function extractReplyFromJsonLikeText(text){
   let out = '';
   while(i < text.length){
     const ch = text[i];
-    if(escaped){
-      switch(ch){
-        case 'n': out += '\\n'; break;
-        case 't': out += '\\t'; break;
-        case 'r': out += '\\r'; break;
-        case '"': out += '"'; break;
-        case '\\': out += '\\\\'; break;
-        default: out += ch; break;
-      }
+	    if(escaped){
+	      switch(ch){
+	        case 'n': out += '\\n'; break;
+	        case 't': out += '\\t'; break;
+	        case 'r': out += '\\r'; break;
+	        case '"': out += '"'; break;
+	        default: out += ch; break;
+	      }
       escaped = false;
       i += 1;
       continue;
     }
-    if(ch === '\\'){
-      escaped = true;
-      i += 1;
-      continue;
+	    if(ch === String.fromCharCode(92)){
+	      escaped = true;
+	      i += 1;
+	      continue;
     }
     if(ch === '"'){
       break;
