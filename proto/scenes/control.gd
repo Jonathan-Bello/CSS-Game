@@ -318,10 +318,10 @@ function readBulletSizeFromCss(rawCss){
 function buildPreviewCss(rawCss){
   const size = readBulletSizeFromCss(rawCss);
   let scopedCss = String(rawCss || '');
-  scopedCss = scopedCss.replaceAll('svg{', '#svg{');
-  scopedCss = scopedCss.replaceAll('svg {', '#svg {');
-  scopedCss = scopedCss.replaceAll(',svg', ',#svg');
-  scopedCss = scopedCss.replaceAll(', svg', ', #svg');
+  scopedCss = scopedCss.split('svg{').join('#svg{');
+  scopedCss = scopedCss.split('svg {').join('#svg {');
+  scopedCss = scopedCss.split(',svg').join(',#svg');
+  scopedCss = scopedCss.split(', svg').join(', #svg');
   return {
     css: `${scopedCss}\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
     width: size.width,
