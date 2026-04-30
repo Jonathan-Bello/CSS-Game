@@ -303,7 +303,7 @@ function clampBulletSize(value){
 
 function readBulletSizeFromCss(rawCss){
   const text = String(rawCss || '');
-  const parsePxValue = (name) => {
+  function parsePxValue(name) {
     const token = `${name}:`;
     const lower = text.toLowerCase();
     const idx = lower.indexOf(token);
@@ -321,7 +321,7 @@ function readBulletSizeFromCss(rawCss){
       return null;
     }
     return Number(digits);
-  };
+  }
   const parsedWidth = parsePxValue('width');
   const width = clampBulletSize(parsedWidth == null ? 180 : parsedWidth);
   const parsedHeight = parsePxValue('height');
@@ -384,7 +384,7 @@ function renderChatMessages(){
     chatMessagesEl.innerHTML = '<div class="chat-bubble emis">Sin mensajes todavía.</div>';
     return;
   }
-  chatMessagesEl.innerHTML = chatMessages.map((message)=>{
+  chatMessagesEl.innerHTML = chatMessages.map(function(message){
     const role = message && message.role === 'user' ? 'user' : 'emis';
     const text = message && typeof message.text === 'string' ? message.text : '';
     return `<div class="chat-bubble ${role}">${escapeHtml(text)}</div>`;
@@ -474,7 +474,7 @@ function pushChatMessageTyping(role, text, onDone){
   const step = total > 260 ? 3 : (total > 120 ? 2 : 1);
   const delayMs = 12;
   let index = step;
-  const ticker = setInterval(()=>{
+  const ticker = setInterval(function(){
     if(index >= total){
       chatMessages[chatMessages.length - 1].text = normalized;
       renderChatMessages();
@@ -499,14 +499,14 @@ function sendChatMessage(){
 
   const detectedProps = getDetectedProperties(css ? css.value : '');
   const lockedProps = getLockedPropertiesFromCss(css ? css.value : '');
-  const snapshot = {
-    ...exportState(),
+  const baseState = exportState();
+  const snapshot = Object.assign({}, baseState, {
     detected_properties: detectedProps,
     locked_properties: lockedProps,
     unlock_state: unlockState,
     bullet_equipped: bulletEquipped,
     updated_at: bulletUpdatedAt
-  };
+  });
   const context = {
     contract_version: EMIS_CHAT_CONTRACT_VERSION,
     history: chatMessages,
@@ -548,7 +548,7 @@ window.onEmisReply = function(payload){
 
     console.log('[Emis] recepción:', replyText);
     finalizeOnExit = false;
-    pushChatMessageTyping('emis', replyText, ()=>{
+    pushChatMessageTyping('emis', replyText, function(){
       setChatWaitingState(false);
       if(chatInputEl) chatInputEl.focus();
     });
@@ -566,7 +566,7 @@ window.onEmisReply = function(payload){
 
 function getLockedPropertiesFromCss(text){
   const found = getDetectedProperties(text)
-    .filter((key)=>!unlockState[key]);
+    .filter(function(key){ return !unlockState[key]; });
   return found;
 }
 
@@ -620,7 +620,7 @@ function renderDetectedProperties(){
     if(!detected.length){
 	  detectedList.innerHTML = '<span style="color:#88ffb0;font-size:12px">Sin propiedades detectadas.</span>';
     }else{
-      detectedList.innerHTML = detected.map((prop)=>{
+      detectedList.innerHTML = detected.map(function(prop){
         const isLocked = locked.has(prop);
         const cls = isLocked ? 'prop-chip locked' : 'prop-chip';
 		return `<span class="${cls}">${escapeHtml(prop)}</span>`;
@@ -684,7 +684,7 @@ if(chatSendEl){
   chatSendEl.addEventListener('click', sendChatMessage);
 }
 if(chatInputEl){
-  chatInputEl.addEventListener('keydown', (event)=>{
+  chatInputEl.addEventListener('keydown', function(event){
     if(event.key === 'Enter'){
       event.preventDefault();
       sendChatMessage();
@@ -726,7 +726,7 @@ function equipBullet(){
   const blob = new Blob([txt], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
   const img = new Image();
-  img.onload = ()=>{
+  img.onload = function(){
     const maxSize = 200;
     const sourceW = Math.max(1, img.naturalWidth || 256);
     const sourceH = Math.max(1, img.naturalHeight || 256);
@@ -749,7 +749,7 @@ function equipBullet(){
     bulletUpdatedAt = new Date().toISOString();
     updateIndicators();
   };
-  img.onerror = ()=> ipc.postMessage('img_error');
+  img.onerror = function(){ ipc.postMessage('img_error'); };
   img.src = url;
 }
 
