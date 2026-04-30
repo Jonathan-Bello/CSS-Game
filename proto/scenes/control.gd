@@ -193,7 +193,7 @@ func _load_editor_html() -> void:
   .chat-shell h3{margin:0;font-size:14px;color:#ffd57f}
   .chat-shell p{margin:0;color:#bfd0f5;font-size:12px;line-height:1.45}
   .chat-messages{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0;padding-right:2px}
-  .chat-bubble{max-width:92%;padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.4;word-break:break-word;border:1px solid transparent}
+  .chat-bubble{width:fit-content;max-width:min(92%,760px);padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.4;word-break:break-word;white-space:pre-wrap;border:1px solid transparent}
   .chat-bubble.user{margin-left:auto;background:#23406f;color:#e6f1ff;border-color:#36578f}
   .chat-bubble.emis{margin-right:auto;background:#191f34;color:#ffe8b6;border-color:#424f7a}
   .chat-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
@@ -345,9 +345,51 @@ function normalizeEmisReplyText(payload){
       if(parsed && typeof parsed.reply === 'string' && parsed.reply.trim()){
         return parsed.reply.trim();
       }
-    }catch(_err){}
+    }catch(_err){
+      const extracted = extractReplyFromJsonLikeText(normalized);
+      if(extracted){
+        return extracted;
+      }
+    }
   }
   return normalized;
+}
+
+function extractReplyFromJsonLikeText(text){
+  if(typeof text !== 'string' || !text.includes('"reply"')) return '';
+  const marker = '"reply":"';
+  const start = text.indexOf(marker);
+  if(start === -1) return '';
+  let i = start + marker.length;
+  let escaped = false;
+  let out = '';
+  while(i < text.length){
+    const ch = text[i];
+    if(escaped){
+      switch(ch){
+        case 'n': out += '\n'; break;
+        case 't': out += '\t'; break;
+        case 'r': out += '\r'; break;
+        case '"': out += '"'; break;
+        case '\\': out += '\\'; break;
+        default: out += ch; break;
+      }
+      escaped = false;
+      i += 1;
+      continue;
+    }
+    if(ch === '\\'){
+      escaped = true;
+      i += 1;
+      continue;
+    }
+    if(ch === '"'){
+      break;
+    }
+    out += ch;
+    i += 1;
+  }
+  return out.trim();
 }
 
 async function pushChatMessageTyping(role, text){
