@@ -12,6 +12,8 @@ var last_svg: String = ""
 var last_bullet_profile_path: String = ""
 var _web_hydration_payload: Dictionary = {}
 var _emis_client: Node = null
+var _emis_conversation_id: String = ""
+var _last_loaded_html: String = ""
 
 signal overlay_opened
 signal overlay_closed
@@ -165,7 +167,7 @@ func _load_editor_html() -> void:
 <!doctype html>
 <html><head><meta charset="utf-8"/>
 <style>
-  html,body{margin:0;background:transparent;color:#fff;font-family:sans-serif}
+  html,body{margin:0;background:transparent;color:#fff;font-family:'Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
   .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
   .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
   button{background:#4a90e2;border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
@@ -180,26 +182,27 @@ func _load_editor_html() -> void:
   .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(320px,.9fr);gap:10px;padding:10px;box-sizing:border-box;height:100%;min-height:0}
   .workbench{grid-column:1 / span 2;display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}
   .editor{display:grid;grid-template-rows:auto auto;gap:10px;min-height:0}
-  textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+  textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:'Quantico',ui-monospace,SFMono-Regular,Menlo,monospace}
   .code-hint{font-size:12px;color:#ffb4bf;margin:0}
   .prop-panel{background:linear-gradient(145deg,#121d34,#0f162a);border:1px solid #314266;border-radius:10px;padding:10px}
   .prop-panel h3{margin:0 0 8px;font-size:13px;color:#d5e4ff}
   .prop-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
   .prop-chip{font-size:12px;padding:3px 8px;border-radius:999px;background:#1f2d4d;color:#acd7ff;border:1px solid #395382}
   .prop-chip.locked{background:#3b1f2c;color:#ff6b81;border:1px solid #8b3647}
-  .preview{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%, #1a2f59 0%, #0b1222 58%);border:1px solid #314266;border-radius:14px;box-shadow:0 14px 28px rgba(0,0,0,.45);min-height:0}
+  .preview{display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:radial-gradient(circle at 30% 20%, #1a2f59 0%, #0b1222 58%);border:1px solid #314266;border-radius:14px;box-shadow:0 14px 28px rgba(0,0,0,.45);min-height:0}
+  .preview #svg{display:block;flex:0 0 auto;max-width:200px;max-height:200px;pointer-events:none}
   .chat-shell{grid-column:3;display:grid;grid-template-rows:auto 1fr auto;gap:8px;background:linear-gradient(145deg,#131e37,#0d1529);border:1px solid #314266;border-radius:14px;padding:12px;box-shadow:0 12px 26px rgba(0,0,0,.35);min-height:0}
   .chat-shell h3{margin:0;font-size:14px;color:#ffd57f}
   .chat-shell p{margin:0;color:#bfd0f5;font-size:12px;line-height:1.45}
   .chat-messages{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0;padding-right:2px}
-  .chat-bubble{max-width:92%;padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.4;word-break:break-word;border:1px solid transparent}
+  .chat-bubble{width:fit-content;max-width:min(92%,760px);padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.4;word-break:break-word;white-space:pre-wrap;border:1px solid transparent}
   .chat-bubble.user{margin-left:auto;background:#23406f;color:#e6f1ff;border-color:#36578f}
   .chat-bubble.emis{margin-right:auto;background:#191f34;color:#ffe8b6;border-color:#424f7a}
   .chat-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
   .chat-input-row input{background:#0b1222;color:#fff;border:1px solid #345;border-radius:8px;padding:8px}
   .chat-typing{font-size:11px;color:#ffde9f;min-height:16px}
   .chat-typing.hidden{visibility:hidden}
-  svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
+  .preview #svg{margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
 </style></head>
 <body>
   <div class="wrap">
@@ -256,6 +259,40 @@ svg{width:180px;height:180px}
   </div>
 
 <script>
+(function(){
+  function sendDebug(kind, payload){
+    try{
+      payload = payload || {};
+      payload.type = kind;
+      ipc.postMessage(JSON.stringify(payload));
+    }catch(_e){}
+  }
+  window.__overlayDebugSend = sendDebug;
+  window.onerror = function(message, source, lineno, colno){
+    sendDebug('debug_js_error', {
+      message: String(message || ''),
+      source: String(source || ''),
+      line: Number(lineno || 0),
+      column: Number(colno || 0)
+    });
+  };
+  window.onunhandledrejection = function(event){
+    const reason = event && event.reason ? String(event.reason) : 'unknown rejection';
+    sendDebug('debug_js_error', {message: reason, source: 'promise', line: 0, column: 0});
+  };
+  document.addEventListener('click', function(ev){
+    const target = ev && ev.target ? ev.target : null;
+    if(!target) return;
+    const fnName = String(target.getAttribute('onclick') || '').replace('()', '').trim();
+    if(!fnName) return;
+    const exists = typeof window[fnName] === 'function';
+    if(!exists){
+      sendDebug('debug_js_log', {message: 'onclick missing function: ' + fnName});
+    }
+  }, true);
+})();
+</script>
+<script>
 const css = document.getElementById('css');
 const svg = document.getElementById('svg');
 const equipIndicator = document.getElementById('equipIndicator');
@@ -266,9 +303,9 @@ const chatMessagesEl = document.getElementById('chatMessages');
 const chatInputEl = document.getElementById('chatInput');
 const chatSendEl = document.getElementById('chatSend');
 const chatTypingEl = document.getElementById('chatTyping');
-const DEFAULT_CSS = `/* edita el estilo */
-svg{width:180px;height:180px}
-#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}`;
+const DEFAULT_CSS = "/* edita el estilo */\\n"
+  + "svg{width:180px;height:180px}\\n"
+  + "#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}";
 let unlockState = {};
 let allProperties = [];
 let bulletEquipped = false;
@@ -281,10 +318,66 @@ function getStyleEl(){
   return document.getElementById('styleEl');
 }
 
+function clampBulletSize(value){
+  const n = Number(value);
+  if(!Number.isFinite(n)) return 180;
+  return Math.max(10, Math.min(200, Math.round(n)));
+}
+
+function readBulletSizeFromCss(rawCss){
+  const text = String(rawCss || '');
+  function parsePxValue(name) {
+	const token = name + ":";
+    const lower = text.toLowerCase();
+    const idx = lower.indexOf(token);
+    if(idx === -1) return null;
+    const tail = lower.slice(idx + token.length).trim();
+    let digits = '';
+    for(let i = 0; i < tail.length; i += 1){
+      const ch = tail[i];
+      if((ch >= '0' && ch <= '9') || ch === '.'){
+        digits += ch;
+      }else{
+        break;
+      }
+    }
+    if(!digits || !tail.includes('px')){
+      return null;
+    }
+    return Number(digits);
+  }
+  const parsedWidth = parsePxValue('width');
+  const width = clampBulletSize(parsedWidth == null ? 180 : parsedWidth);
+  const parsedHeight = parsePxValue('height');
+  const height = clampBulletSize(parsedHeight == null ? width : parsedHeight);
+  return {width, height};
+}
+
+function buildPreviewCss(rawCss){
+  const size = readBulletSizeFromCss(rawCss);
+  let scopedCss = String(rawCss || '');
+  scopedCss = scopedCss.split('svg{').join('#svg{');
+  scopedCss = scopedCss.split('svg {').join('#svg {');
+  scopedCss = scopedCss.split(',svg').join(',#svg');
+  scopedCss = scopedCss.split(', svg').join(', #svg');
+  return {
+	css: scopedCss + "\\n#svg{width:" + size.width + "px!important;height:" + size.height + "px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}",
+    width: size.width,
+    height: size.height
+  };
+}
+
 function applyCssToPreview(){
   const liveStyle = getStyleEl();
   if(!liveStyle) return;
-  liveStyle.textContent = css.value;
+  const previewCss = buildPreviewCss(css.value);
+  liveStyle.textContent = previewCss.css;
+  svg.style.width = String(previewCss.width) + "px";
+  svg.style.height = String(previewCss.height) + "px";
+  svg.style.maxWidth = '200px';
+  svg.style.maxHeight = '200px';
+  svg.style.minWidth = '10px';
+  svg.style.minHeight = '10px';
   renderDetectedProperties();
 }
 
@@ -312,13 +405,13 @@ function setChatWaitingState(waiting){
 function renderChatMessages(){
   if(!chatMessagesEl) return;
   if(!chatMessages.length){
-    chatMessagesEl.innerHTML = '<div class="chat-bubble emis">Sin mensajes todavía.</div>';
+	chatMessagesEl.innerHTML = '<div class="chat-bubble emis">Sin mensajes todavía.</div>';
     return;
   }
-  chatMessagesEl.innerHTML = chatMessages.map((message)=>{
+  chatMessagesEl.innerHTML = chatMessages.map(function(message){
     const role = message && message.role === 'user' ? 'user' : 'emis';
     const text = message && typeof message.text === 'string' ? message.text : '';
-    return `<div class="chat-bubble ${role}">${escapeHtml(text)}</div>`;
+	return '<div class="chat-bubble ' + role + '">' + escapeHtml(text) + '</div>';
   }).join('');
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
@@ -329,6 +422,93 @@ function pushChatMessage(role, text){
   if(!normalized) return;
   chatMessages.push({role: role === 'user' ? 'user' : 'emis', text: normalized});
   renderChatMessages();
+}
+
+function normalizeEmisReplyText(payload){
+  if(!payload || typeof payload !== 'object') return '';
+  let raw = typeof payload.reply === 'string' ? payload.reply : '';
+  if(!raw && typeof payload.message === 'string') raw = payload.message;
+  const normalized = String(raw || '').trim();
+  if(!normalized) return '';
+
+  if(normalized.startsWith('{') && normalized.includes('"reply"')){
+    try{
+      const parsed = JSON.parse(normalized);
+      if(parsed && typeof parsed.reply === 'string' && parsed.reply.trim()){
+        return parsed.reply.trim();
+      }
+    }catch(_err){
+      const extracted = extractReplyFromJsonLikeText(normalized);
+      if(extracted){
+        return extracted;
+      }
+    }
+  }
+  return normalized;
+}
+
+function extractReplyFromJsonLikeText(text){
+  if(typeof text !== 'string' || !text.includes('"reply"')) return '';
+  const marker = '"reply":"';
+  const start = text.indexOf(marker);
+  if(start === -1) return '';
+  let i = start + marker.length;
+  let escaped = false;
+  let out = '';
+  while(i < text.length){
+    const ch = text[i];
+	    if(escaped){
+	      switch(ch){
+			case 'n': out += '\\n'; break;
+			case 't': out += '\\t'; break;
+			case 'r': out += '\\r'; break;
+			case '"': out += '"'; break;
+	        default: out += ch; break;
+	      }
+      escaped = false;
+      i += 1;
+      continue;
+    }
+	    if(ch === String.fromCharCode(92)){
+	      escaped = true;
+	      i += 1;
+	      continue;
+    }
+	if(ch === '"'){
+      break;
+    }
+    out += ch;
+    i += 1;
+  }
+  return out.trim();
+}
+
+function pushChatMessageTyping(role, text, onDone){
+  const normalized = String(text || '').trim();
+  if(!normalized){
+    if(typeof onDone === 'function') onDone();
+    return;
+  }
+  const safeRole = role === 'user' ? 'user' : 'emis';
+  chatMessages.push({role: safeRole, text: ''});
+  renderChatMessages();
+
+  const total = normalized.length;
+  const step = total > 260 ? 3 : (total > 120 ? 2 : 1);
+  const delayMs = 12;
+  let index = step;
+  const ticker = setInterval(function(){
+    if(index >= total){
+      chatMessages[chatMessages.length - 1].text = normalized;
+      renderChatMessages();
+      clearInterval(ticker);
+      if(typeof onDone === 'function') onDone();
+      return;
+    }
+    chatMessages[chatMessages.length - 1].text = normalized.slice(0, index);
+    renderChatMessages();
+    index += step;
+  }, delayMs);
 }
 
 function sendChatMessage(){
@@ -342,14 +522,14 @@ function sendChatMessage(){
 
   const detectedProps = getDetectedProperties(css ? css.value : '');
   const lockedProps = getLockedPropertiesFromCss(css ? css.value : '');
-  const snapshot = {
-    ...exportState(),
+  const baseState = exportState();
+  const snapshot = Object.assign({}, baseState, {
     detected_properties: detectedProps,
     locked_properties: lockedProps,
     unlock_state: unlockState,
     bullet_equipped: bulletEquipped,
     updated_at: bulletUpdatedAt
-  };
+  });
   const context = {
     contract_version: EMIS_CHAT_CONTRACT_VERSION,
     history: chatMessages,
@@ -371,6 +551,7 @@ function sendChatMessage(){
 }
 
 window.onEmisReply = function(payload){
+  let finalizeOnExit = true;
   try{
     if(!payload || typeof payload !== 'object'){
       throw new Error('payload inválido');
@@ -382,28 +563,33 @@ window.onEmisReply = function(payload){
       return;
     }
 
-    const replyText = typeof payload.message === 'string'
-      ? payload.message
-      : (typeof payload.reply === 'string' ? payload.reply : '');
+    const replyText = normalizeEmisReplyText(payload);
 
     if(!replyText.trim()){
       throw new Error('respuesta vacía');
     }
 
     console.log('[Emis] recepción:', replyText);
-    pushChatMessage('emis', replyText);
+    finalizeOnExit = false;
+    pushChatMessageTyping('emis', replyText, function(){
+      setChatWaitingState(false);
+      if(chatInputEl) chatInputEl.focus();
+    });
+    return;
   }catch(err){
     console.error('[Emis] error procesando respuesta', err);
     pushChatMessage('emis', 'No pude entender la respuesta de Emis. Vuelve a intentarlo.');
   }finally{
-    setChatWaitingState(false);
-    if(chatInputEl) chatInputEl.focus();
+    if(finalizeOnExit){
+      setChatWaitingState(false);
+      if(chatInputEl) chatInputEl.focus();
+    }
   }
 };
 
 function getLockedPropertiesFromCss(text){
   const found = getDetectedProperties(text)
-    .filter((key)=>!unlockState[key]);
+    .filter(function(key){ return !unlockState[key]; });
   return found;
 }
 
@@ -457,10 +643,10 @@ function renderDetectedProperties(){
     if(!detected.length){
 	  detectedList.innerHTML = '<span style="color:#88ffb0;font-size:12px">Sin propiedades detectadas.</span>';
     }else{
-      detectedList.innerHTML = detected.map((prop)=>{
+      detectedList.innerHTML = detected.map(function(prop){
         const isLocked = locked.has(prop);
         const cls = isLocked ? 'prop-chip locked' : 'prop-chip';
-		return `<span class="${cls}">${escapeHtml(prop)}</span>`;
+		return '<span class="' + cls + '">' + escapeHtml(prop) + '</span>';
       }).join('');
     }
   }
@@ -521,7 +707,7 @@ if(chatSendEl){
   chatSendEl.addEventListener('click', sendChatMessage);
 }
 if(chatInputEl){
-  chatInputEl.addEventListener('keydown', (event)=>{
+  chatInputEl.addEventListener('keydown', function(event){
     if(event.key === 'Enter'){
       event.preventDefault();
       sendChatMessage();
@@ -552,22 +738,28 @@ function saveDraft(){
 }
 
 function equipBullet(){
+  const bulletSize = readBulletSizeFromCss(css.value);
   const clone = svg.cloneNode(true);
   const cloneStyle = clone.querySelector('#styleEl');
   if(cloneStyle){
-    cloneStyle.textContent = css.value;
+    const previewCss = buildPreviewCss(css.value);
+    cloneStyle.textContent = previewCss.css;
   }
   const txt = new XMLSerializer().serializeToString(clone);
   const blob = new Blob([txt], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
   const img = new Image();
-  img.onload = ()=>{
-    const maxSize = 150;
+  img.onload = function(){
+    const maxSize = 200;
     const sourceW = Math.max(1, img.naturalWidth || 256);
     const sourceH = Math.max(1, img.naturalHeight || 256);
+    const targetW = clampBulletSize(bulletSize.width);
+    const targetH = clampBulletSize(bulletSize.height);
     const ratio = Math.min(1, maxSize / Math.max(sourceW, sourceH));
-    const outW = Math.max(1, Math.round(sourceW * ratio));
-    const outH = Math.max(1, Math.round(sourceH * ratio));
+    const sampledW = Math.max(1, Math.round(sourceW * ratio));
+    const sampledH = Math.max(1, Math.round(sourceH * ratio));
+    const outW = clampBulletSize(Math.min(targetW, sampledW));
+    const outH = clampBulletSize(Math.min(targetH, sampledH));
 
     const c = document.createElement('canvas');
     c.width = outW;
@@ -580,7 +772,7 @@ function equipBullet(){
     bulletUpdatedAt = new Date().toISOString();
     updateIndicators();
   };
-  img.onerror = ()=> ipc.postMessage('img_error');
+  img.onerror = function(){ ipc.postMessage('img_error'); };
   img.src = url;
 }
 
@@ -592,10 +784,27 @@ function newBullet(){
   bulletUpdatedAt = '';
   updateIndicators();
 }
-</script>
+	</script>
 </body></html>
 """
+	_last_loaded_html = html
 	web.call("load_html", html)
+
+func _debug_print_html_context(error_line: int, context_radius: int = 4) -> void:
+	if _last_loaded_html == "":
+		return
+	if error_line <= 0:
+		return
+	var lines := _last_loaded_html.split("\n")
+	var total := lines.size()
+	if total == 0:
+		return
+	var start_line :Variant= max(1, error_line - context_radius)
+	var end_line :Variant = min(total, error_line + context_radius)
+	print("[WebOverlay][JS][ctx] around about:blank:%s (total=%s)" % [error_line, total])
+	for idx in range(start_line, end_line + 1):
+		var marker := ">>" if idx == error_line else "  "
+		print("[WebOverlay][JS][ctx]%s L%s: %s" % [marker, idx, lines[idx - 1]])
 
 func _on_web_ipc_message(msg: String) -> void:
 	print("[WebOverlay] ipc_message: ", msg)
@@ -617,7 +826,17 @@ func _on_web_ipc_message(msg: String) -> void:
 
 	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
-		match String(data.get("type", "")):
+		match str(data.get("type", "")):
+			"debug_js_log":
+				print("[WebOverlay][JS][log] %s" % str(data.get("message", "")))
+			"debug_js_error":
+				var message := str(data.get("message", ""))
+				var source := str(data.get("source", ""))
+				var line_number := int(data.get("line", 0))
+				var column_number := int(data.get("column", 0))
+				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [message, source, line_number, column_number])
+				if source == "about:blank":
+					_debug_print_html_context(line_number, 6)
 			"close":
 				close()
 				return
@@ -647,12 +866,7 @@ func _handle_chat_request(data: Dictionary) -> void:
 		incoming_context = raw_context
 
 	var context := _build_emis_context(incoming_context)
-	var contract_version := String(data.get("contract_version", String(context.get("contract_version", "emis_chat_v1"))))
-	var payload := {
-		"contract_version": contract_version,
-		"message": message,
-		"context": context
-	}
+	var payload := _build_emis_payload_for_backend(data, context, message)
 	print("[Emis] solicitud -> %s" % JSON.stringify(payload))
 
 	var response: Dictionary = {}
@@ -679,8 +893,74 @@ func _handle_chat_request(data: Dictionary) -> void:
 	if not bool(response.get("ok", false)):
 		push_warning("[Emis] error <- %s (%s)" % [String(response.get("error", "desconocido")), String(response.get("code", "unknown"))])
 	else:
+		_update_emis_conversation_id(response)
 		print("[Emis] respuesta <- %s" % JSON.stringify(response))
 	_send_emis_reply_to_web(response)
+
+func _build_emis_payload_for_backend(data: Dictionary, context: Dictionary, message: String) -> Dictionary:
+	var normalized_message := message.substr(0, min(message.length(), 1200))
+	var intent_mode := String(data.get("intent_mode", context.get("intent_mode", "auto"))).strip_edges().to_lower()
+	if intent_mode != "tutor_css" and intent_mode != "guia_juego":
+		intent_mode = "auto"
+
+	var player_context := _build_player_context_for_emis(data, context)
+	var css_snapshot_fragment := String(context.get("css_text", last_css)).strip_edges()
+	if css_snapshot_fragment.length() > 10000:
+		css_snapshot_fragment = css_snapshot_fragment.substr(0, 10000)
+
+	var payload := {
+		"message": normalized_message,
+		"intent_mode": intent_mode,
+		"player_context": player_context,
+		"css_snapshot_fragment": css_snapshot_fragment
+	}
+
+	if _emis_conversation_id == "":
+		_emis_conversation_id = _create_conversation_id()
+	if _emis_conversation_id != "":
+		payload["conversation_id"] = _emis_conversation_id
+
+	return payload
+
+func _build_player_context_for_emis(data: Dictionary, context: Dictionary) -> Dictionary:
+	var snapshot: Dictionary = {}
+	var raw_snapshot: Variant = context.get("snapshot", {})
+	if typeof(raw_snapshot) == TYPE_DICTIONARY:
+		snapshot = raw_snapshot
+
+	var player_context: Dictionary = {}
+	player_context["screen"] = String(data.get("screen", context.get("screen", "bullet_creator"))).strip_edges()
+	player_context["level"] = String(data.get("level", context.get("level", ""))).strip_edges()
+	player_context["objective"] = String(data.get("objective", context.get("objective", ""))).strip_edges()
+	player_context["zone_id"] = String(data.get("zone_id", context.get("zone_id", ""))).strip_edges()
+	player_context["quest_id"] = String(data.get("quest_id", context.get("quest_id", ""))).strip_edges()
+	player_context["quest_step"] = String(data.get("quest_step", context.get("quest_step", ""))).strip_edges()
+
+	var unlocked_css_raw: Variant = data.get("unlocked_css", context.get("unlocked_css", snapshot.get("detected_properties", [])))
+	player_context["unlocked_css"] = _to_packed_string_array(unlocked_css_raw)
+	player_context["nearby_npcs"] = _to_packed_string_array(data.get("nearby_npcs", context.get("nearby_npcs", [])))
+	player_context["available_portals"] = _to_packed_string_array(data.get("available_portals", context.get("available_portals", [])))
+	player_context["inventory_tags"] = _to_packed_string_array(data.get("inventory_tags", context.get("inventory_tags", [])))
+	player_context["failed_attempts_css"] = _to_packed_string_array(data.get("failed_attempts_css", context.get("failed_attempts_css", [])))
+	return player_context
+
+func _create_conversation_id() -> String:
+	return "conv_%s_%s" % [int(Time.get_unix_time_from_system()), Time.get_ticks_msec()]
+
+func _update_emis_conversation_id(response: Dictionary) -> void:
+	var raw: Dictionary = {}
+	var raw_response: Variant = response.get("raw", {})
+	if typeof(raw_response) == TYPE_DICTIONARY:
+		raw = raw_response
+
+	var from_raw := String(raw.get("conversation_id", "")).strip_edges()
+	if from_raw != "":
+		_emis_conversation_id = from_raw
+		return
+
+	var from_top_level := String(response.get("conversation_id", "")).strip_edges()
+	if from_top_level != "":
+		_emis_conversation_id = from_top_level
 
 func _to_packed_string_array(raw: Variant) -> PackedStringArray:
 	if raw is PackedStringArray:

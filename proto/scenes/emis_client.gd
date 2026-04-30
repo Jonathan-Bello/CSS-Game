@@ -2,14 +2,16 @@ extends Node
 class_name EmisClient
 
 @export var base_url: String = "http://127.0.0.1:8080"
-@export var chat_endpoint: String = ""
+@export var chat_endpoint: String = "/api/emis/chat"
 @export var timeout_seconds: float = 20.0
 @export var auto_discover_endpoint: bool = true
 @export var candidate_endpoints: PackedStringArray = PackedStringArray([
+	"/api/emis/chat",
 	"/chat",
 	"/api/chat",
 	"/v1/chat",
-	"/emis/chat"
+	"/emis/chat",
+	"/api/v1/emis/chat"
 ])
 
 var _resolved_endpoint: String = ""
@@ -198,6 +200,7 @@ func _request_json(endpoint: String, method: int, body: String, headers: PackedS
 	var http := _create_http_request()
 	if http == null:
 		return _error_result("No se pudo crear el cliente HTTP.", "network")
+	http.timeout = max(timeout_seconds, 0.1)
 
 	var request_started_msec := Time.get_ticks_msec()
 	print("[Emis] request -> %s (method=%s, payload=%s bytes, timeout=%ss)" % [endpoint, method, body.length(), timeout_seconds])
@@ -209,37 +212,22 @@ func _request_json(endpoint: String, method: int, body: String, headers: PackedS
 
 	var response := await _await_http_response(http, endpoint)
 	http.queue_free()
-	var elapsed_ms := max(0, Time.get_ticks_msec() - request_started_msec)
-	print("[Emis] request <- elapsed=%sms code=%s ok=%s" % [elapsed_ms, String(response.get("code", "")), String(response.get("ok", false))])
+	var elapsed_ms :Variant= max(0, Time.get_ticks_msec() - request_started_msec)
+	print("[Emis] request <- elapsed=%sms code=%s ok=%s" % [elapsed_ms, str(response.get("code", "")), str(response.get("ok", false))])
 	return response
 
 func _await_http_response(http: HTTPRequest, endpoint: String) -> Dictionary:
-	var done := false
-	var timed_out := false
-	var packet := {
-		"ok": false,
-		"error": "No response",
-		"code": "network"
-	}
+	var completed: Array = await http.request_completed
+	if completed.size() < 4:
+		push_warning("[Emis] respuesta incompleta del request endpoint=%s" % endpoint)
+		return _error_result("La respuesta de Emis llegó incompleta.", "invalid_response")
 
-	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-		done = true
-		packet = _map_http_packet(result, response_code, body)
-	, CONNECT_ONE_SHOT)
-
-	var timer := get_tree().create_timer(max(timeout_seconds, 0.1))
-	while not done and not timed_out:
-		if timer.time_left <= 0.0:
-			timed_out = true
-			break
-		await get_tree().process_frame
-
-	if timed_out:
-		http.cancel_request()
+	var result := int(completed[0])
+	var response_code := int(completed[1])
+	var body := completed[3] as PackedByteArray
+	if result == HTTPRequest.RESULT_TIMEOUT:
 		push_warning("[Emis] timeout alcanzado (%ss) endpoint=%s" % [timeout_seconds, endpoint])
-		return _error_result("Emis tardó demasiado en responder.", "timeout")
-
-	return packet
+	return _map_http_packet(result, response_code, body)
 
 func _map_http_packet(result: int, response_code: int, body: PackedByteArray) -> Dictionary:
 	var body_text := body.get_string_from_utf8()
