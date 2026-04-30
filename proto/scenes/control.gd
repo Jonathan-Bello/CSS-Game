@@ -302,8 +302,8 @@ const chatMessagesEl = document.getElementById('chatMessages');
 const chatInputEl = document.getElementById('chatInput');
 const chatSendEl = document.getElementById('chatSend');
 const chatTypingEl = document.getElementById('chatTyping');
-const DEFAULT_CSS = "/* edita el estilo */\n"
-  + "svg{width:180px;height:180px}\n"
+const DEFAULT_CSS = "/* edita el estilo */\\n"
+  + "svg{width:180px;height:180px}\\n"
   + "#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}";
 let unlockState = {};
 let allProperties = [];
