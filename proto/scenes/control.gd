@@ -327,7 +327,7 @@ function clampBulletSize(value){
 function readBulletSizeFromCss(rawCss){
   const text = String(rawCss || '');
   function parsePxValue(name) {
-    const token = name + ":";
+	const token = name + ":";
     const lower = text.toLowerCase();
     const idx = lower.indexOf(token);
     if(idx === -1) return null;
@@ -361,7 +361,7 @@ function buildPreviewCss(rawCss){
   scopedCss = scopedCss.split(',svg').join(',#svg');
   scopedCss = scopedCss.split(', svg').join(', #svg');
   return {
-    css: scopedCss + "\\n#svg{width:" + size.width + "px!important;height:" + size.height + "px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}",
+	css: scopedCss + "\\n#svg{width:" + size.width + "px!important;height:" + size.height + "px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}",
     width: size.width,
     height: size.height
   };
@@ -405,13 +405,13 @@ function setChatWaitingState(waiting){
 function renderChatMessages(){
   if(!chatMessagesEl) return;
   if(!chatMessages.length){
-    chatMessagesEl.innerHTML = '<div class="chat-bubble emis">Sin mensajes todavía.</div>';
+	chatMessagesEl.innerHTML = '<div class="chat-bubble emis">Sin mensajes todavía.</div>';
     return;
   }
   chatMessagesEl.innerHTML = chatMessages.map(function(message){
     const role = message && message.role === 'user' ? 'user' : 'emis';
     const text = message && typeof message.text === 'string' ? message.text : '';
-    return '<div class="chat-bubble ' + role + '">' + escapeHtml(text) + '</div>';
+	return '<div class="chat-bubble ' + role + '">' + escapeHtml(text) + '</div>';
   }).join('');
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
@@ -459,10 +459,10 @@ function extractReplyFromJsonLikeText(text){
     const ch = text[i];
 	    if(escaped){
 	      switch(ch){
-	        case 'n': out += '\\n'; break;
-	        case 't': out += '\\t'; break;
-	        case 'r': out += '\\r'; break;
-	        case '"': out += '"'; break;
+			case 'n': out += '\\n'; break;
+			case 't': out += '\\t'; break;
+			case 'r': out += '\\r'; break;
+			case '"': out += '"'; break;
 	        default: out += ch; break;
 	      }
       escaped = false;
@@ -474,7 +474,7 @@ function extractReplyFromJsonLikeText(text){
 	      i += 1;
 	      continue;
     }
-    if(ch === '"'){
+	if(ch === '"'){
       break;
     }
     out += ch;
@@ -799,8 +799,8 @@ func _debug_print_html_context(error_line: int, context_radius: int = 4) -> void
 	var total := lines.size()
 	if total == 0:
 		return
-	var start_line := max(1, error_line - context_radius)
-	var end_line := min(total, error_line + context_radius)
+	var start_line :Variant= max(1, error_line - context_radius)
+	var end_line :Variant = min(total, error_line + context_radius)
 	print("[WebOverlay][JS][ctx] around about:blank:%s (total=%s)" % [error_line, total])
 	for idx in range(start_line, end_line + 1):
 		var marker := ">>" if idx == error_line else "  "
