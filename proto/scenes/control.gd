@@ -809,15 +809,15 @@ func _on_web_ipc_message(msg: String) -> void:
 
 	var data: Variant = JSON.parse_string(msg)
 	if typeof(data) == TYPE_DICTIONARY:
-		match String(data.get("type", "")):
+		match str(data.get("type", "")):
 			"debug_js_log":
-				print("[WebOverlay][JS][log] %s" % String(data.get("message", "")))
+				print("[WebOverlay][JS][log] %s" % str(data.get("message", "")))
 			"debug_js_error":
 				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [
-					String(data.get("message", "")),
-					String(data.get("source", "")),
-					String(data.get("line", "")),
-					String(data.get("column", ""))
+					str(data.get("message", "")),
+					str(data.get("source", "")),
+					str(data.get("line", "")),
+					str(data.get("column", ""))
 				])
 			"close":
 				close()
