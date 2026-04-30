@@ -13,6 +13,7 @@ var last_bullet_profile_path: String = ""
 var _web_hydration_payload: Dictionary = {}
 var _emis_client: Node = null
 var _emis_conversation_id: String = ""
+var _last_loaded_html: String = ""
 
 signal overlay_opened
 signal overlay_closed
@@ -784,10 +785,27 @@ function newBullet(){
   bulletUpdatedAt = '';
   updateIndicators();
 }
-</script>
+	</script>
 </body></html>
 """
+	_last_loaded_html = html
 	web.call("load_html", html)
+
+func _debug_print_html_context(error_line: int, context_radius: int = 4) -> void:
+	if _last_loaded_html == "":
+		return
+	if error_line <= 0:
+		return
+	var lines := _last_loaded_html.split("\n")
+	var total := lines.size()
+	if total == 0:
+		return
+	var start_line := max(1, error_line - context_radius)
+	var end_line := min(total, error_line + context_radius)
+	print("[WebOverlay][JS][ctx] around about:blank:%s (total=%s)" % [error_line, total])
+	for idx in range(start_line, end_line + 1):
+		var marker := ">>" if idx == error_line else "  "
+		print("[WebOverlay][JS][ctx]%s L%s: %s" % [marker, idx, lines[idx - 1]])
 
 func _on_web_ipc_message(msg: String) -> void:
 	print("[WebOverlay] ipc_message: ", msg)
@@ -813,12 +831,13 @@ func _on_web_ipc_message(msg: String) -> void:
 			"debug_js_log":
 				print("[WebOverlay][JS][log] %s" % str(data.get("message", "")))
 			"debug_js_error":
-				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [
-					str(data.get("message", "")),
-					str(data.get("source", "")),
-					str(data.get("line", "")),
-					str(data.get("column", ""))
-				])
+				var message := str(data.get("message", ""))
+				var source := str(data.get("source", ""))
+				var line_number := int(data.get("line", 0))
+				var column_number := int(data.get("column", 0))
+				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [message, source, line_number, column_number])
+				if source == "about:blank":
+					_debug_print_html_context(line_number, 6)
 			"close":
 				close()
 				return
