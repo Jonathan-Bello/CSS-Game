@@ -290,18 +290,39 @@ function clampBulletSize(value){
 
 function readBulletSizeFromCss(rawCss){
   const text = String(rawCss || '');
-  const widthMatch = text.match(/(?:^|[\\s{;])width\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)px/i);
-  const heightMatch = text.match(/(?:^|[\\s{;])height\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)px/i);
-  const width = clampBulletSize(widthMatch ? widthMatch[1] : 180);
-  const height = clampBulletSize(heightMatch ? heightMatch[1] : width);
+  const parsePxValue = (name) => {
+    const token = `${name}:`;
+    const lower = text.toLowerCase();
+    const idx = lower.indexOf(token);
+    if(idx === -1) return null;
+    const tail = lower.slice(idx + token.length).trim();
+    let digits = '';
+    for(const ch of tail){
+      if((ch >= '0' && ch <= '9') || ch === '.'){
+        digits += ch;
+      }else{
+        break;
+      }
+    }
+    if(!digits || !tail.includes('px')){
+      return null;
+    }
+    return Number(digits);
+  };
+  const width = clampBulletSize(parsePxValue('width') ?? 180);
+  const height = clampBulletSize(parsePxValue('height') ?? width);
   return {width, height};
 }
 
 function buildPreviewCss(rawCss){
   const size = readBulletSizeFromCss(rawCss);
-  const scopedCss = String(rawCss || '').replace(/(^|[^#.\\w-])svg(?=\\s*[{,#.:\\s])/g, '$1#svg');
+  let scopedCss = String(rawCss || '');
+  scopedCss = scopedCss.replaceAll('svg{', '#svg{');
+  scopedCss = scopedCss.replaceAll('svg {', '#svg {');
+  scopedCss = scopedCss.replaceAll(',svg', ',#svg');
+  scopedCss = scopedCss.replaceAll(', svg', ', #svg');
   return {
-    css: `${scopedCss}\\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
+    css: `${scopedCss}\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
     width: size.width,
     height: size.height
   };
