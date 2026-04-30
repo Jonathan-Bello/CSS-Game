@@ -290,8 +290,8 @@ function clampBulletSize(value){
 
 function readBulletSizeFromCss(rawCss){
   const text = String(rawCss || '');
-  const widthMatch = text.match(/(?:^|[\s{;])width\s*:\s*([0-9]+(?:\.[0-9]+)?)px/i);
-  const heightMatch = text.match(/(?:^|[\s{;])height\s*:\s*([0-9]+(?:\.[0-9]+)?)px/i);
+  const widthMatch = text.match(/(?:^|[\\s{;])width\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)px/i);
+  const heightMatch = text.match(/(?:^|[\\s{;])height\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)px/i);
   const width = clampBulletSize(widthMatch ? widthMatch[1] : 180);
   const height = clampBulletSize(heightMatch ? heightMatch[1] : width);
   return {width, height};
@@ -299,9 +299,9 @@ function readBulletSizeFromCss(rawCss){
 
 function buildPreviewCss(rawCss){
   const size = readBulletSizeFromCss(rawCss);
-  const scopedCss = String(rawCss || '').replace(/(^|[^#.\w-])svg(?=\s*[{,#.:\s])/g, '$1#svg');
+  const scopedCss = String(rawCss || '').replace(/(^|[^#.\\w-])svg(?=\\s*[{,#.:\\s])/g, '$1#svg');
   return {
-    css: `${scopedCss}\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
+    css: `${scopedCss}\\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
     width: size.width,
     height: size.height
   };
