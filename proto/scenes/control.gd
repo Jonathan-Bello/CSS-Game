@@ -268,9 +268,9 @@ const chatMessagesEl = document.getElementById('chatMessages');
 const chatInputEl = document.getElementById('chatInput');
 const chatSendEl = document.getElementById('chatSend');
 const chatTypingEl = document.getElementById('chatTyping');
-const DEFAULT_CSS = `/* edita el estilo */
-svg{width:180px;height:180px}
-#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}`;
+const DEFAULT_CSS = "/* edita el estilo */\n"
+  + "svg{width:180px;height:180px}\n"
+  + "#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}";
 let unlockState = {};
 let allProperties = [];
 let bulletEquipped = false;
@@ -304,13 +304,14 @@ function clampBulletSize(value){
 function readBulletSizeFromCss(rawCss){
   const text = String(rawCss || '');
   function parsePxValue(name) {
-    const token = `${name}:`;
+    const token = name + ":";
     const lower = text.toLowerCase();
     const idx = lower.indexOf(token);
     if(idx === -1) return null;
     const tail = lower.slice(idx + token.length).trim();
     let digits = '';
-    for(const ch of tail){
+    for(let i = 0; i < tail.length; i += 1){
+      const ch = tail[i];
       if((ch >= '0' && ch <= '9') || ch === '.'){
         digits += ch;
       }else{
@@ -337,7 +338,7 @@ function buildPreviewCss(rawCss){
   scopedCss = scopedCss.split(',svg').join(',#svg');
   scopedCss = scopedCss.split(', svg').join(', #svg');
   return {
-    css: `${scopedCss}\n#svg{width:${size.width}px!important;height:${size.height}px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}`,
+    css: scopedCss + "\n#svg{width:" + size.width + "px!important;height:" + size.height + "px!important;max-width:200px!important;max-height:200px!important;min-width:10px!important;min-height:10px!important;}",
     width: size.width,
     height: size.height
   };
@@ -348,8 +349,8 @@ function applyCssToPreview(){
   if(!liveStyle) return;
   const previewCss = buildPreviewCss(css.value);
   liveStyle.textContent = previewCss.css;
-  svg.style.width = `${previewCss.width}px`;
-  svg.style.height = `${previewCss.height}px`;
+  svg.style.width = String(previewCss.width) + "px";
+  svg.style.height = String(previewCss.height) + "px";
   svg.style.maxWidth = '200px';
   svg.style.maxHeight = '200px';
   svg.style.minWidth = '10px';
@@ -387,7 +388,7 @@ function renderChatMessages(){
   chatMessagesEl.innerHTML = chatMessages.map(function(message){
     const role = message && message.role === 'user' ? 'user' : 'emis';
     const text = message && typeof message.text === 'string' ? message.text : '';
-    return `<div class="chat-bubble ${role}">${escapeHtml(text)}</div>`;
+    return '<div class="chat-bubble ' + role + '">' + escapeHtml(text) + '</div>';
   }).join('');
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
@@ -623,7 +624,7 @@ function renderDetectedProperties(){
       detectedList.innerHTML = detected.map(function(prop){
         const isLocked = locked.has(prop);
         const cls = isLocked ? 'prop-chip locked' : 'prop-chip';
-		return `<span class="${cls}">${escapeHtml(prop)}</span>`;
+		return '<span class="' + cls + '">' + escapeHtml(prop) + '</span>';
       }).join('');
     }
   }
