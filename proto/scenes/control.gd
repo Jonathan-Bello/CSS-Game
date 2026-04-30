@@ -188,7 +188,8 @@ func _load_editor_html() -> void:
   .prop-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
   .prop-chip{font-size:12px;padding:3px 8px;border-radius:999px;background:#1f2d4d;color:#acd7ff;border:1px solid #395382}
   .prop-chip.locked{background:#3b1f2c;color:#ff6b81;border:1px solid #8b3647}
-  .preview{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%, #1a2f59 0%, #0b1222 58%);border:1px solid #314266;border-radius:14px;box-shadow:0 14px 28px rgba(0,0,0,.45);min-height:0}
+  .preview{display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:radial-gradient(circle at 30% 20%, #1a2f59 0%, #0b1222 58%);border:1px solid #314266;border-radius:14px;box-shadow:0 14px 28px rgba(0,0,0,.45);min-height:0}
+  .preview #svg{display:block;flex:0 0 auto;max-width:200px;max-height:200px;pointer-events:none}
   .chat-shell{grid-column:3;display:grid;grid-template-rows:auto 1fr auto;gap:8px;background:linear-gradient(145deg,#131e37,#0d1529);border:1px solid #314266;border-radius:14px;padding:12px;box-shadow:0 12px 26px rgba(0,0,0,.35);min-height:0}
   .chat-shell h3{margin:0;font-size:14px;color:#ffd57f}
   .chat-shell p{margin:0;color:#bfd0f5;font-size:12px;line-height:1.45}
@@ -200,7 +201,7 @@ func _load_editor_html() -> void:
   .chat-input-row input{background:#0b1222;color:#fff;border:1px solid #345;border-radius:8px;padding:8px}
   .chat-typing{font-size:11px;color:#ffde9f;min-height:16px}
   .chat-typing.hidden{visibility:hidden}
-  svg{display:block;margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
+  .preview #svg{margin:12px auto;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45))}
 </style></head>
 <body>
   <div class="wrap">
@@ -333,6 +334,12 @@ function applyCssToPreview(){
   if(!liveStyle) return;
   const previewCss = buildPreviewCss(css.value);
   liveStyle.textContent = previewCss.css;
+  svg.style.width = `${previewCss.width}px`;
+  svg.style.height = `${previewCss.height}px`;
+  svg.style.maxWidth = '200px';
+  svg.style.maxHeight = '200px';
+  svg.style.minWidth = '10px';
+  svg.style.minHeight = '10px';
   renderDetectedProperties();
 }
 
