@@ -10,8 +10,8 @@
     font-style:normal;
     font-display:swap;
   }
-  html,body{margin:0;background:transparent;color:#fff;font-family:'OverlayDisplay','Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
-  .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;color:#fff;font-family:'OverlayDisplay','Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
+  .wrap{display:grid;grid-template-rows:auto auto 1fr;height:100%;min-height:0;overflow:hidden}
   .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
   button{background:#4a90e2;border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
   button,select,input,textarea{font-family:'OverlayDisplay','Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
@@ -326,30 +326,42 @@ function pushChatMessage(role, text){
 
 function normalizeEmisReplyText(payload){
   if(!payload || typeof payload !== 'object') return '';
-  let raw = typeof payload.reply === 'string' ? payload.reply : '';
-  if(!raw && typeof payload.message === 'string') raw = payload.message;
-  const normalized = String(raw || '').trim();
-  if(!normalized) return '';
 
-  if(normalized.startsWith('{') && normalized.includes('"reply"')){
-    try{
-      const parsed = JSON.parse(normalized);
-      if(parsed && typeof parsed.reply === 'string' && parsed.reply.trim()){
-        return parsed.reply.trim();
-      }
-    }catch(_err){
-      const extracted = extractReplyFromJsonLikeText(normalized);
-      if(extracted){
-        return extracted;
+  function pickRippledai(value){
+    if(!value || typeof value !== 'object') return '';
+    const direct = typeof value.Rippledai === 'string' ? value.Rippledai.trim() : '';
+    if(direct) return direct;
+    const lower = typeof value.rippledai === 'string' ? value.rippledai.trim() : '';
+    if(lower) return lower;
+    return '';
+  }
+
+  const direct = pickRippledai(payload);
+  if(direct) return direct;
+
+  const candidates = [payload.reply, payload.message];
+  for(const candidate of candidates){
+    if(typeof candidate !== 'string') continue;
+    const normalized = candidate.trim();
+    if(!normalized) continue;
+    if(normalized.startsWith('{')){
+      try{
+        const parsed = JSON.parse(normalized);
+        const rippled = pickRippledai(parsed);
+        if(rippled) return rippled;
+      }catch(_err){
+        const extracted = extractJsonFieldFromText(normalized, 'Rippledai');
+        if(extracted) return extracted;
       }
     }
   }
-  return normalized;
+
+  return '';
 }
 
-function extractReplyFromJsonLikeText(text){
-  if(typeof text !== 'string' || !text.includes('"reply"')) return '';
-  const marker = '"reply":"';
+function extractJsonFieldFromText(text, field){
+  if(typeof text !== 'string' || typeof field !== 'string') return '';
+  const marker = '"' + field + '":"';
   const start = text.indexOf(marker);
   if(start === -1) return '';
   let i = start + marker.length;
@@ -357,26 +369,24 @@ function extractReplyFromJsonLikeText(text){
   let out = '';
   while(i < text.length){
     const ch = text[i];
-	    if(escaped){
-	      switch(ch){
-			case 'n': out += '\\n'; break;
-			case 't': out += '\\t'; break;
-			case 'r': out += '\\r'; break;
-			case '"': out += '"'; break;
-	        default: out += ch; break;
-	      }
+    if(escaped){
+      switch(ch){
+        case 'n': out += '\n'; break;
+        case 't': out += '\t'; break;
+        case 'r': out += '\r'; break;
+        case '"': out += '"'; break;
+        default: out += ch; break;
+      }
       escaped = false;
       i += 1;
       continue;
     }
-	    if(ch === String.fromCharCode(92)){
-	      escaped = true;
-	      i += 1;
-	      continue;
+    if(ch === String.fromCharCode(92)){
+      escaped = true;
+      i += 1;
+      continue;
     }
-	if(ch === '"'){
-      break;
-    }
+    if(ch === '"') break;
     out += ch;
     i += 1;
   }
