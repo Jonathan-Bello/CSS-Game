@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-labelledby="title desc">
+  <title id="title">Fondo de cueva en ciudad postapocalíptica solarpunk</title>
+  <desc id="desc">Cueva oscura con ruinas urbanas, vegetación recuperando edificios, cristales brillantes, agua y detalles de energía solar en estilo solarpunk postapocalíptico.</desc>
+
+  <defs>
+    <linearGradient id="skyGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b3a3a"/>
+      <stop offset="0.45" stop-color="#2d4b48"/>
+      <stop offset="1" stop-color="#101b1b"/>
+    </linearGradient>
+
+    <radialGradient id="solarHole" cx="50%" cy="23%" r="42%">
+      <stop offset="0" stop-color="#ffd700" stop-opacity="0.95"/>
+      <stop offset="0.18" stop-color="#ffc15e" stop-opacity="0.65"/>
+      <stop offset="0.45" stop-color="#7bb497" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#101b1b" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="caveRock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a211c"/>
+      <stop offset="0.45" stop-color="#283326"/>
+      <stop offset="1" stop-color="#0b0f0d"/>
+    </linearGradient>
+
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2d4b48" stop-opacity="0.45"/>
+      <stop offset="0.45" stop-color="#7bb497" stop-opacity="0.62"/>
+      <stop offset="1" stop-color="#669294" stop-opacity="0.42"/>
+    </linearGradient>
+
+    <linearGradient id="metalRust" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#514c02"/>
+      <stop offset="0.7" stop-color="#d5560c"/>
+      <stop offset="1" stop-color="#2d4b48"/>
+    </linearGradient>
+
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.08"/>
+      </feComponentTransfer>
+      <feBlend mode="overlay" in2="SourceGraphic"/>
+    </filter>
+
+    <pattern id="leafPattern" width="90" height="90" patternUnits="userSpaceOnUse">
+      <path d="M45 78 C20 55 22 32 45 10 C68 32 70 55 45 78Z" fill="#5c8966" opacity="0.5"/>
+      <path d="M45 74 C45 52 45 32 45 14" stroke="#c6c296" stroke-width="2" opacity="0.35"/>
+      <path d="M10 42 C24 30 39 32 50 45 C33 54 20 52 10 42Z" fill="#7bb497" opacity="0.35"/>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#skyGlow)"/>
+  <rect width="1920" height="1080" fill="url(#solarHole)"/>
+
+  <!-- Apertura superior de la cueva -->
+  <path d="M0 0 H1920 V230 C1710 165 1550 160 1370 235 C1180 310 1035 270 910 195 C770 110 545 130 425 260 C300 395 150 320 0 230Z" fill="#090d0b" opacity="0.96"/>
+  <path d="M0 0 H1920 V120 C1680 90 1430 95 1235 150 C1010 215 850 105 700 82 C470 45 230 85 0 160Z" fill="#151c17" opacity="0.9"/>
+
+  <!-- Rayos solares desde la grieta -->
+  <g opacity="0.24" filter="url(#softGlow)">
+    <path d="M900 105 L1020 760 L920 760 Z" fill="#ffd700"/>
+    <path d="M760 125 L650 780 L555 780 Z" fill="#ffc15e" opacity="0.65"/>
+    <path d="M1075 155 L1350 810 L1260 820 Z" fill="#7bb497" opacity="0.55"/>
+  </g>
+
+  <!-- Silueta lejana de ciudad destruida -->
+  <g opacity="0.82">
+    <rect x="210" y="390" width="95" height="280" fill="#17211f"/>
+    <rect x="325" y="330" width="135" height="340" fill="#1e2a26"/>
+    <rect x="490" y="430" width="120" height="240" fill="#17211f"/>
+    <rect x="660" y="360" width="88" height="310" fill="#1d2b28"/>
+    <rect x="775" y="410" width="170" height="260" fill="#17211f"/>
+    <rect x="1000" y="340" width="115" height="330" fill="#1e2a26"/>
+    <rect x="1150" y="460" width="140" height="210" fill="#17211f"/>
+    <rect x="1340" y="365" width="125" height="305" fill="#1a2724"/>
+    <rect x="1500" y="425" width="92" height="245" fill="#17211f"/>
+
+    <path d="M325 330 L458 330 L438 290 L355 302Z" fill="#24332d"/>
+    <path d="M1000 340 L1115 340 L1075 292 L1018 312Z" fill="#24332d"/>
+    <path d="M1340 365 L1465 365 L1410 318Z" fill="#24332d"/>
+
+    <g fill="#7bb497" opacity="0.45">
+      <rect x="350" y="370" width="18" height="26"/><rect x="390" y="370" width="18" height="26"/><rect x="430" y="370" width="18" height="26"/>
+      <rect x="1018" y="382" width="18" height="26"/><rect x="1058" y="382" width="18" height="26"/><rect x="1095" y="382" width="18" height="26"/>
+      <rect x="1370" y="410" width="18" height="26"/><rect x="1410" y="410" width="18" height="26"/>
+    </g>
+
+    <!-- Paneles solares improvisados -->
+    <g stroke="#c6c296" stroke-width="3" fill="#264d50">
+      <path d="M520 390 L625 360 L670 395 L558 430Z"/>
+      <path d="M1215 425 L1328 395 L1378 430 L1250 468Z"/>
+      <path d="M805 350 L890 328 L930 360 L842 388Z"/>
+    </g>
+    <g stroke="#7bb497" stroke-width="2" opacity="0.8">
+      <path d="M535 390 L645 397"/><path d="M560 378 L600 417"/><path d="M590 370 L632 407"/>
+      <path d="M1235 424 L1355 431"/><path d="M1265 415 L1305 454"/><path d="M1302 405 L1342 442"/>
+    </g>
+  </g>
+
+  <!-- Vegetación recuperando ruinas -->
+  <g opacity="0.9">
+    <path d="M360 670 C360 575 405 545 390 470 C445 520 450 600 430 670Z" fill="#2d4b48"/>
+    <path d="M1045 670 C1030 560 1125 520 1100 405 C1180 500 1180 600 1150 670Z" fill="#2d4b48"/>
+    <path d="M1415 670 C1395 590 1450 530 1440 455 C1505 525 1510 608 1490 670Z" fill="#5c8966" opacity="0.75"/>
+    <path d="M0 650 C220 620 370 690 590 655 C850 615 1040 690 1260 655 C1510 615 1700 640 1920 610 V1080 H0Z" fill="url(#leafPattern)" opacity="0.28"/>
+  </g>
+
+  <!-- Formaciones de roca laterales -->
+  <path d="M0 215 C120 310 160 450 115 600 C75 730 115 870 0 1080Z" fill="url(#caveRock)"/>
+  <path d="M1920 190 C1760 320 1735 455 1798 610 C1848 735 1790 890 1920 1080Z" fill="url(#caveRock)"/>
+
+  <!-- Estalactitas -->
+  <g fill="#111711" opacity="0.96">
+    <path d="M120 0 L190 0 L155 245Z"/>
+    <path d="M250 0 L325 0 L285 165Z"/>
+    <path d="M510 0 L590 0 L545 225Z"/>
+    <path d="M1210 0 L1288 0 L1250 250Z"/>
+    <path d="M1560 0 L1645 0 L1600 195Z"/>
+    <path d="M1745 0 L1815 0 L1780 315Z"/>
+  </g>
+
+  <!-- Cristales bioluminiscentes -->
+  <g filter="url(#softGlow)">
+    <path d="M242 775 L290 650 L340 775 Z" fill="#7bb497" opacity="0.82"/>
+    <path d="M302 782 L350 690 L385 782 Z" fill="#669294" opacity="0.72"/>
+    <path d="M1540 790 L1595 640 L1655 790 Z" fill="#ffd700" opacity="0.65"/>
+    <path d="M1660 800 L1702 710 L1742 800 Z" fill="#7bb497" opacity="0.7"/>
+  </g>
+
+  <!-- Piso inundado -->
+  <path d="M0 735 C260 705 410 790 650 752 C870 720 1025 776 1240 748 C1515 712 1705 758 1920 730 V1080 H0Z" fill="#0b120f" opacity="0.94"/>
+  <path d="M0 755 C260 725 410 810 650 772 C870 740 1025 796 1240 768 C1515 732 1705 778 1920 750 V1080 H0Z" fill="url(#water)"/>
+  <g opacity="0.28" stroke="#c6c296" stroke-width="3" fill="none">
+    <path d="M140 840 C300 815 390 855 540 835"/>
+    <path d="M680 890 C840 860 980 910 1140 880"/>
+    <path d="M1250 820 C1425 790 1555 850 1750 820"/>
+  </g>
+
+  <!-- Primer plano: rocas, raíces y cables -->
+  <g>
+    <path d="M0 910 C190 840 330 895 420 980 C530 1080 0 1080 0 1080Z" fill="#090d0b"/>
+    <path d="M1920 895 C1740 845 1620 925 1510 1000 C1390 1080 1920 1080 1920 1080Z" fill="#090d0b"/>
+    <path d="M680 1080 C740 980 850 940 960 970 C1070 1000 1160 985 1265 920 C1220 1050 1120 1080 1120 1080Z" fill="#0a0f0c"/>
+
+    <path d="M92 1060 C260 955 340 860 420 660" stroke="#5c8966" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <path d="M1700 1080 C1570 970 1535 850 1500 630" stroke="#2d4b48" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M1090 1035 C1180 920 1195 780 1175 610" stroke="#514c02" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.75"/>
+  </g>
+
+  <!-- Pequeños brotes en primer plano -->
+  <g fill="#5c8966">
+    <path d="M520 920 C500 880 508 845 540 820 C570 855 560 895 520 920Z"/>
+    <path d="M570 925 C560 880 590 850 635 845 C625 895 605 918 570 925Z" fill="#7bb497"/>
+    <path d="M1335 905 C1310 865 1320 830 1355 802 C1385 845 1375 880 1335 905Z"/>
+    <path d="M1380 920 C1365 870 1402 842 1450 838 C1438 892 1418 912 1380 920Z" fill="#7bb497"/>
+  </g>
+
+  <!-- Partículas de polvo y esporas luminosas -->
+  <g filter="url(#softGlow)">
+    <circle cx="620" cy="250" r="4" fill="#ffd700" opacity="0.7"/>
+    <circle cx="820" cy="330" r="3" fill="#c6c296" opacity="0.55"/>
+    <circle cx="1010" cy="260" r="4" fill="#ffc15e" opacity="0.6"/>
+    <circle cx="1165" cy="450" r="3" fill="#7bb497" opacity="0.65"/>
+    <circle cx="755" cy="515" r="3" fill="#7bb497" opacity="0.55"/>
+    <circle cx="1395" cy="300" r="3" fill="#ffd700" opacity="0.55"/>
+  </g>
+
+  <!-- Textura general -->
+  <rect width="1920" height="1080" filter="url(#grain)" opacity="0.35"/>
+</svg>

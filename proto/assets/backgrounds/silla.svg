@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2026 (Versión OEM) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="128px" height="128px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 128 128"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .fil1 {fill:none}
+    .fil0 {fill:#FFF212}
+   ]]>
+  </style>
+   <clipPath id="id0">
+    <path d="M0 0l128 0 0 128 -128 0 0 -128z"/>
+   </clipPath>
+ </defs>
+ <g id="Capa_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <g>
+  </g>
+  <g style="clip-path:url(#id0)">
+   <g id="_2102677841344">
+    <polygon class="fil0" points="31.5,118 50.5,118 50.5,84 79.5,84 79.5,118 96.5,118 96.5,84 96.5,67 79.5,67 50.5,67 45.65,67 45.65,10 31.5,10 31.5,67 "/>
+   </g>
+  </g>
+  <polygon class="fil1" points="0,0 128,0 128,128 0,128 "/>
+ </g>
+</svg>
