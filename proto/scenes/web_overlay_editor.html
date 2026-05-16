@@ -5,7 +5,7 @@
   /* Fuente personalizada local (si existe en el proyecto). */
   @font-face{
     font-family:'OverlayDisplay';
-    src:url('res://proto/assets/fonts/Quantico-Regular.ttf') format('truetype');
+    src:url('__OVERLAY_FONT_DATA_URI__') format('truetype');
     font-weight:400;
     font-style:normal;
     font-display:swap;
@@ -134,6 +134,50 @@
     const reason = event && event.reason ? String(event.reason) : 'unknown rejection';
     sendDebug('debug_js_error', {message: reason, source: 'promise', line: 0, column: 0});
   };
+
+  function verifyOverlayFont(){
+    const sample = 'Overlay Font Probe 0123456789';
+    const fallbackFamily = 'Segoe UI, sans-serif';
+    const testFamily = "'OverlayDisplay', " + fallbackFamily;
+    function widthFor(fontFamily){
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if(!ctx) return 0;
+      ctx.font = '32px ' + fontFamily;
+      return ctx.measureText(sample).width;
+    }
+
+    Promise.resolve()
+      .then(function(){
+        if(document.fonts && document.fonts.load){
+          return document.fonts.load("32px 'OverlayDisplay'", sample);
+        }
+        return [];
+      })
+      .then(function(loaded){
+        const ready = !!(loaded && loaded.length);
+        const overlayWidth = widthFor(testFamily);
+        const fallbackWidth = widthFor(fallbackFamily);
+        const differs = Math.abs(overlayWidth - fallbackWidth) > 0.1;
+        const computed = window.getComputedStyle(document.body).fontFamily || '';
+        sendDebug('debug_font_status', {
+          requested: 'OverlayDisplay',
+          ready: ready,
+          width_overlay: overlayWidth,
+          width_fallback: fallbackWidth,
+          distinct_metrics: differs,
+          computed_font_family: computed,
+          active_overlay_font: ready && differs && computed.toLowerCase().includes('overlaydisplay')
+        });
+      })
+      .catch(function(err){
+        sendDebug('debug_font_status', {
+          requested: 'OverlayDisplay',
+          ready: false,
+          error: String(err || 'unknown font load error')
+        });
+      });
+  }
   document.addEventListener('click', function(ev){
     const target = ev && ev.target ? ev.target : null;
     if(!target) return;
@@ -238,6 +282,7 @@ function applyCssToPreview(){
 applyCssToPreview();
 css.addEventListener('input', applyCssToPreview);
 ipc.postMessage('html_loaded');
+verifyOverlayFont();
 
 function escapeHtml(raw){
   if(typeof raw !== 'string') return '';

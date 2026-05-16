@@ -178,13 +178,33 @@ func _read_editor_html_template() -> String:
 	html = html.replace("<\\\\/script>", "<\\/script>")
 	return html
 
+func _read_overlay_font_data_uri() -> String:
+	var font_path := "res://proto/assets/fonts/Quantico-Regular.ttf"
+	if not FileAccess.file_exists(font_path):
+		push_warning("[WebOverlay] No se encontró fuente OverlayDisplay: %s" % font_path)
+		return ""
+	var font_file := FileAccess.open(font_path, FileAccess.READ)
+	if font_file == null:
+		push_warning("[WebOverlay] No se pudo abrir fuente OverlayDisplay: %s" % font_path)
+		return ""
+	var bytes := font_file.get_buffer(font_file.get_length())
+	if bytes.is_empty():
+		push_warning("[WebOverlay] Fuente OverlayDisplay vacía: %s" % font_path)
+		return ""
+	return "data:font/ttf;base64,%s" % Marshalls.raw_to_base64(bytes)
+
 func _load_editor_html() -> void:
 	_web_hydration_payload = _read_bullet_hydration_payload()
 	var html := _read_editor_html_template()
 	if html == "":
 		html = "<!doctype html><html><body style='margin:0;background:#111;color:#fff'>Editor no disponible</body></html>"
+
+	var font_data_uri := _read_overlay_font_data_uri()
+	html = html.replace("__OVERLAY_FONT_DATA_URI__", font_data_uri)
+
 	_last_loaded_html = html
-	web.call("load_html", html)
+	var base_url := "https://overlay.local/"
+	web.call("load_html", html, base_url)
 
 func _debug_print_html_context(error_line: int, context_radius: int = 4) -> void:
 	if _last_loaded_html == "":
@@ -233,6 +253,14 @@ func _on_web_ipc_message(msg: String) -> void:
 				push_warning("[WebOverlay][JS] %s @%s:%s:%s" % [message, source, line_number, column_number])
 				if source == "about:blank":
 					_debug_print_html_context(line_number, 6)
+			"debug_font_status":
+				print("[WebOverlay][Font] estado=%s ready=%s distinct_metrics=%s active=%s computed=%s" % [
+					str(data.get("requested", "OverlayDisplay")),
+					str(data.get("ready", false)),
+					str(data.get("distinct_metrics", false)),
+					str(data.get("active_overlay_font", false)),
+					str(data.get("computed_font_family", ""))
+				])
 			"close":
 				close()
 				return
