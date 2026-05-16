@@ -119,6 +119,8 @@ extends CharacterBody2D
 @export_node_path("Node2D") var shoot_arm_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
 ## Punto de salida del disparo.
 @export_node_path("Node2D") var shoot_origin_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
+## Sprite visual del brazo derecho vinculado al hueso brazoD.
+@export_node_path("CanvasItem") var shoot_arm_sprite_path: NodePath = ^"Skeleton2D/sprites/BrazoD"
 ## RayCast2D para apuntado hacia el mouse.
 @export_node_path("RayCast2D") var aim_raycast_path: NodePath = ^"hitboxes/aim_raycast"
 
@@ -138,6 +140,9 @@ extends CharacterBody2D
 @export var bullet_cadence_min_factor: float = 0.45
 @export var bullet_cadence_max_factor: float = 2.0
 @export var debug_show_raycast: bool = true
+@export var debug_show_shoot_bone: bool = false
+@export var debug_shoot_bone_length: float = 110.0
+@export var shoot_arm_aim_offset_degrees: float = 0.0
 
 var bullet_profile_path: String = ""
 var current_bullet_profile: Dictionary = {}
@@ -194,6 +199,7 @@ var lock_controls := false # micro “hit-stop” al atacar
 @onready var attack_area: Area2D = get_node_or_null(attack_area_path)
 @onready var shoot_arm: Node2D = get_node_or_null(shoot_arm_path)
 @onready var shoot_origin: Node2D = get_node_or_null(shoot_origin_path)
+@onready var shoot_arm_sprite: CanvasItem = get_node_or_null(shoot_arm_sprite_path)
 @onready var aim_raycast: RayCast2D = get_node_or_null(aim_raycast_path)
 @onready var lbl_state: Label = get_node_or_null(lbl_state_path)
 @onready var lbl_vel: Label = get_node_or_null(lbl_vel_path)
@@ -212,6 +218,7 @@ func _ready() -> void:
 		# get_tree().debug_collisions_hint = true
 		wall_probe.force_raycast_update()
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
+	if shoot_arm_sprite == null: push_warning("shoot_arm_sprite no encontrado en '%s'." % shoot_arm_sprite_path)
 	if aim_raycast == null: push_warning("aim_raycast no encontrado en '%s'." % aim_raycast_path)
 	if attack_area:
 		attack_area.monitoring = false
@@ -222,6 +229,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_aim_raycast()
+	_update_shoot_arm_aim(delta)
+	if debug_show_shoot_bone:
+		queue_redraw()
 	# 1) Timers base (suelo, coyote, cooldowns)
 	if is_on_floor():
 		time_since_grounded = 0.0
@@ -512,7 +522,6 @@ func _attack(dir: Direction) -> void:
 	if dir == Direction.UP: clip = &"attack_up"
 	if dir == Direction.DOWN: clip = &"attack_down"
 	_play_if_changed(clip, false)
-	_play_shoot_pose()
 	# Se calculan stats una sola vez por disparo para consistencia de velocidad,
 	# daño y cadencia de esa bala.
 	var tuned_stats := _compute_bullet_stats_from_profile()
@@ -563,14 +572,20 @@ func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 
 	get_tree().current_scene.add_child(bullet)
 
-func _play_shoot_pose() -> void:
+func _update_shoot_arm_aim(_delta: float) -> void:
+	if shoot_arm_sprite:
+		shoot_arm_sprite.visible = true
 	if shoot_arm == null:
 		return
-	var aim_direction := _get_aim_direction()
-	var target_rotation: Variant = clamp(aim_direction.angle(), deg_to_rad(-70.0), deg_to_rad(70.0))
-	var tw := create_tween()
-	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
-	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
+	var mouse_global := get_global_mouse_position()
+	var arm_global := shoot_arm.global_position
+	var aim_direction := mouse_global - arm_global
+	if aim_direction.length_squared() <= 0.0001:
+		return
+	var offset_degrees := shoot_arm_aim_offset_degrees
+	if _facing_sign() < 0:
+		offset_degrees = -offset_degrees
+	shoot_arm.global_rotation = aim_direction.angle() + deg_to_rad(offset_degrees)
 
 func _update_aim_raycast() -> void:
 	if aim_raycast == null:
@@ -734,6 +749,15 @@ func _play_if_changed(anim_name: StringName, loop: bool = true) -> void:
 		anim.play(String(anim_name))
 		current_anim = anim_name
 
+
+func _draw() -> void:
+	if not debug_show_shoot_bone or shoot_arm == null:
+		return
+	var bone_pos := to_local(shoot_arm.global_position)
+	var tip_pos := to_local(shoot_arm.to_global(Vector2(debug_shoot_bone_length, 0.0)))
+	draw_line(bone_pos, tip_pos, Color(1.0, 0.2, 0.2, 0.95), 3.0)
+	draw_circle(bone_pos, 4.0, Color(0.2, 1.0, 0.2, 0.9))
+	draw_circle(tip_pos, 3.0, Color(1.0, 1.0, 0.2, 0.9))
 
 # ============================================================================
 # DEBUG — Labels
