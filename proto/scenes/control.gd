@@ -204,7 +204,19 @@ func _load_editor_html() -> void:
 
 	_last_loaded_html = html
 	var base_url := "https://overlay.local/"
-	web.call("load_html", html, base_url)
+	var supports_base_url := false
+	for method_info in web.get_method_list():
+		if str(method_info.get("name", "")) != "load_html":
+			continue
+		var argc := int(method_info.get("args", []).size())
+		if argc >= 2:
+			supports_base_url = true
+			break
+	if supports_base_url:
+		web.call("load_html", html, base_url)
+	else:
+		print("[WebOverlay] load_html sin base URL: plugin expone firma de 1 parámetro")
+		web.call("load_html", html)
 
 func _debug_print_html_context(error_line: int, context_radius: int = 4) -> void:
 	if _last_loaded_html == "":
