@@ -119,6 +119,8 @@ extends CharacterBody2D
 @export_node_path("Node2D") var shoot_arm_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
 ## Punto de salida del disparo.
 @export_node_path("Node2D") var shoot_origin_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
+## Sprite visual del brazo derecho vinculado al hueso brazoD.
+@export_node_path("CanvasItem") var shoot_arm_sprite_path: NodePath = ^"Skeleton2D/sprites/BrazoD"
 ## RayCast2D para apuntado hacia el mouse.
 @export_node_path("RayCast2D") var aim_raycast_path: NodePath = ^"hitboxes/aim_raycast"
 
@@ -194,6 +196,7 @@ var lock_controls := false # micro “hit-stop” al atacar
 @onready var attack_area: Area2D = get_node_or_null(attack_area_path)
 @onready var shoot_arm: Node2D = get_node_or_null(shoot_arm_path)
 @onready var shoot_origin: Node2D = get_node_or_null(shoot_origin_path)
+@onready var shoot_arm_sprite: CanvasItem = get_node_or_null(shoot_arm_sprite_path)
 @onready var aim_raycast: RayCast2D = get_node_or_null(aim_raycast_path)
 @onready var lbl_state: Label = get_node_or_null(lbl_state_path)
 @onready var lbl_vel: Label = get_node_or_null(lbl_vel_path)
@@ -212,6 +215,7 @@ func _ready() -> void:
 		# get_tree().debug_collisions_hint = true
 		wall_probe.force_raycast_update()
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
+	if shoot_arm_sprite == null: push_warning("shoot_arm_sprite no encontrado en '%s'." % shoot_arm_sprite_path)
 	if aim_raycast == null: push_warning("aim_raycast no encontrado en '%s'." % aim_raycast_path)
 	if attack_area:
 		attack_area.monitoring = false
@@ -564,6 +568,8 @@ func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 	get_tree().current_scene.add_child(bullet)
 
 func _update_shoot_arm_aim(_delta: float) -> void:
+	if shoot_arm_sprite:
+		shoot_arm_sprite.visible = true
 	if shoot_arm == null:
 		return
 	var mouse_global := get_global_mouse_position()
