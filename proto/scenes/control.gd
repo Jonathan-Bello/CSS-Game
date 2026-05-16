@@ -378,6 +378,7 @@ function applyCssToPreview(){
   svg.style.maxHeight = '200px';
   svg.style.minWidth = '10px';
   svg.style.minHeight = '10px';
+  svg.setAttribute('preserveAspectRatio', 'none');
   renderDetectedProperties();
 }
 
@@ -596,9 +597,13 @@ function getLockedPropertiesFromCss(text){
 function getDetectedProperties(text){
   const found = [];
   const seen = new Set();
-  const parts = String(text || '').split(';');
-  for(const rawChunk of parts){
-    const chunk = rawChunk.trim();
+  const cleaned = String(text || '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^[^{]*\{/g, '')
+    .replace(/\}[\s\S]*$/g, '');
+  const declarations = cleaned.match(/([a-zA-Z-]+)\s*:\s*([^;{}]+)/g) || [];
+  for(const rawChunk of declarations){
+    const chunk = String(rawChunk || '').trim();
     if(!chunk) continue;
     const idx = chunk.indexOf(':');
     if(idx === -1) continue;
@@ -758,8 +763,8 @@ function equipBullet(){
     const ratio = Math.min(1, maxSize / Math.max(sourceW, sourceH));
     const sampledW = Math.max(1, Math.round(sourceW * ratio));
     const sampledH = Math.max(1, Math.round(sourceH * ratio));
-    const outW = clampBulletSize(Math.min(targetW, sampledW));
-    const outH = clampBulletSize(Math.min(targetH, sampledH));
+    const outW = Math.max(10, Math.min(maxSize, Math.round(Math.min(targetW, sampledW))));
+    const outH = Math.max(10, Math.min(maxSize, Math.round(Math.min(targetH, sampledH))));
 
     const c = document.createElement('canvas');
     c.width = outW;
