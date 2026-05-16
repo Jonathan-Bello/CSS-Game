@@ -1194,7 +1194,6 @@ shoot_origin_path = null
 bullet_scene = null
 bullet_speed = null
 bullet_damage = null
-bullet_css_text = null
 lbl_state_path = null
 lbl_vel_path = null
 lbl_flags_path = null
@@ -1262,7 +1261,7 @@ remote_path = NodePath("../../../../../sprites/BrazoD")
 [node name="brazoI" type="Bone2D" parent="Skeleton2D/origen/cintura/torso"]
 position = Vector2(64, -110)
 rotation = -0.029809957
-scale = Vector2(0.99998975, 0.99998975)
+scale = Vector2(0.9999897, 0.9999897)
 rest = Transform2D(0.9995557, -0.029805543, 0.029805543, 0.9995557, 64, -110)
 auto_calculate_length_and_angle = false
 length = 50.0
@@ -1380,8 +1379,8 @@ metadata/_edit_lock_ = true
 [node name="BrazoI" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
 position = Vector2(61, -181)
-rotation = -0.029809961
-scale = Vector2(0.99998975, 0.99998975)
+rotation = -0.029809957
+scale = Vector2(0.9999897, 0.9999897)
 offset = Vector2(-62, 184)
 
 [node name="BrazoI" type="Node2D" parent="Skeleton2D/sprites/BrazoI"]
