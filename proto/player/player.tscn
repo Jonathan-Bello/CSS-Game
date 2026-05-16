@@ -1154,49 +1154,8 @@ script = ExtResource("3_t6f4j")
 collision_layer = 2
 collision_mask = 2
 script = ExtResource("1_7a6m1")
-MAX_SPEED = null
-ACCEL_GROUND = null
-DECEL_GROUND = null
-ACCEL_AIR = null
-DECEL_AIR = null
-RUN_THRESHOLD = null
-STICK_DEAD_ZONE = null
-GRAVITY = null
-MAX_FALL_SPEED = null
-JUMP_VELOCITY = null
-COYOTE_TIME = null
-JUMP_BUFFER_TIME = null
-FALL_MULTIPLIER = null
-LOW_JUMP_MULTIPLIER = null
-FAST_FALL_MULTIPLIER = null
-APEX_THRESHOLD = null
-APEX_GRAVITY_SCALE = null
-ENABLE_DOUBLE_JUMP = null
-DOUBLE_JUMP_VELOCITY = null
-DASH_SPEED = null
-DASH_UP_VELOCITY = null
-DASH_TIME = null
-DASH_COOLDOWN = null
-WALL_SLIDE_GRAVITY = null
-WALL_SLIDE_SPEED_MAX = null
-WALL_JUMP_PUSH_TIME = null
-WALL_JUMP_PUSH_FORCE = null
-WALL_STICK_TIME = null
-WALL_COYOTE_TIME = null
-ATTACK_TIME = null
-ATTACK_KNOCK_PAUSE = null
-gfx_root_path = null
-anim_path = null
 wall_probe_path = NodePath("Skeleton2D/hitboxes/wall_probe")
 attack_area_path = NodePath("Skeleton2D/hitboxes")
-shoot_arm_path = null
-shoot_origin_path = null
-bullet_scene = null
-bullet_speed = null
-bullet_damage = null
-lbl_state_path = null
-lbl_vel_path = null
-lbl_flags_path = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_1lfiw")
@@ -1261,7 +1220,7 @@ remote_path = NodePath("../../../../../sprites/BrazoD")
 [node name="brazoI" type="Bone2D" parent="Skeleton2D/origen/cintura/torso"]
 position = Vector2(64, -110)
 rotation = -0.029809957
-scale = Vector2(0.99998957, 0.99998957)
+scale = Vector2(0.9999887, 0.9999887)
 rest = Transform2D(0.9995557, -0.029805543, 0.029805543, 0.9995557, 64, -110)
 auto_calculate_length_and_angle = false
 length = 50.0
@@ -1300,7 +1259,7 @@ position = Vector2(20, 32)
 
 [node name="Cabeza" type="Sprite2D" parent="Skeleton2D/sprites"]
 texture_filter = 1
-position = Vector2(11, -235)
+position = Vector2(10.087179, -233.84492)
 offset = Vector2(-10.577301, -63.24276)
 
 [node name="Cabeza" type="Node2D" parent="Skeleton2D/sprites/Cabeza"]
@@ -1378,9 +1337,9 @@ metadata/_edit_lock_ = true
 
 [node name="BrazoI" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
-position = Vector2(61, -181)
-rotation = -0.029809957
-scale = Vector2(0.99998957, 0.99998957)
+position = Vector2(60.08718, -179.84492)
+rotation = -0.029809969
+scale = Vector2(0.9999887, 0.9999887)
 offset = Vector2(-62, 184)
 
 [node name="BrazoI" type="Node2D" parent="Skeleton2D/sprites/BrazoI"]
@@ -1401,7 +1360,7 @@ polygon = PackedVector2Array(29.14795, 85.68, 7.852051, -85.68, -29.14795, -43.1
 metadata/_edit_lock_ = true
 
 [node name="Torso" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(-3, -71)
+position = Vector2(-3.9128208, -69.844925)
 offset = Vector2(-1, -72)
 
 [node name="Torso" type="Node2D" parent="Skeleton2D/sprites/Torso"]
@@ -1644,7 +1603,7 @@ metadata/_edit_lock_ = true
 
 [node name="BrazoD" type="Sprite2D" parent="Skeleton2D/sprites"]
 visible = false
-position = Vector2(-78, -183)
+position = Vector2(-78.91282, -181.84492)
 scale = Vector2(0.9999998, 0.9999998)
 offset = Vector2(73, 193)
 
@@ -1666,7 +1625,7 @@ polygon = PackedVector2Array(-51.75, 117.2609, -3.0379982, -117.26091, 51.75, -7
 metadata/_edit_lock_ = true
 
 [node name="Hemis" type="Sprite2D" parent="Skeleton2D/sprites"]
-position = Vector2(6, -399)
+position = Vector2(5.087179, -397.8449)
 offset = Vector2(0, -50)
 
 [node name="Hemis" type="Node2D" parent="Skeleton2D/sprites/Hemis"]
