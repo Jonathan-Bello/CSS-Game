@@ -222,6 +222,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_aim_raycast()
+	_update_shoot_arm_aim(delta)
 	# 1) Timers base (suelo, coyote, cooldowns)
 	if is_on_floor():
 		time_since_grounded = 0.0
@@ -512,7 +513,6 @@ func _attack(dir: Direction) -> void:
 	if dir == Direction.UP: clip = &"attack_up"
 	if dir == Direction.DOWN: clip = &"attack_down"
 	_play_if_changed(clip, false)
-	_play_shoot_pose()
 	# Se calculan stats una sola vez por disparo para consistencia de velocidad,
 	# daño y cadencia de esa bala.
 	var tuned_stats := _compute_bullet_stats_from_profile()
@@ -563,14 +563,13 @@ func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 
 	get_tree().current_scene.add_child(bullet)
 
-func _play_shoot_pose() -> void:
+func _update_shoot_arm_aim(_delta: float) -> void:
 	if shoot_arm == null:
 		return
 	var aim_direction := _get_aim_direction()
-	var target_rotation: Variant = clamp(aim_direction.angle(), deg_to_rad(-70.0), deg_to_rad(70.0))
-	var tw := create_tween()
-	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
-	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
+	var target_rotation := aim_direction.angle()
+	target_rotation = clamp(target_rotation, deg_to_rad(-70.0), deg_to_rad(70.0))
+	shoot_arm.rotation = target_rotation
 
 func _update_aim_raycast() -> void:
 	if aim_raycast == null:
