@@ -4,16 +4,17 @@
 <style>
   /* Fuente personalizada local (si existe en el proyecto). */
   @font-face{
-    font-family:'OverlayDisplay';
-    src:url('res://proto/assets/fonts/Quantico-Regular.ttf') format('truetype');
+    font-family:'Quantico';
+    src:local('Quantico');
     font-weight:400;
     font-style:normal;
     font-display:swap;
   }
-  html,body{margin:0;background:transparent;color:#fff;font-family:'OverlayDisplay','Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
+  html,body{margin:0;background:transparent;color:#fff;font-family:'Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
   .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
   .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
   button{background:#4a90e2;border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+  select,input,button{font-family:inherit}
   .btn-secondary{background:#2b3858}
   .btn-warn{background:#7d3142}
   button:disabled{opacity:.5;cursor:wait}
