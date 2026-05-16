@@ -32,6 +32,7 @@ const CSS_NAMED_COLORS := {
 const RELEVANT_PROPERTIES := {
 	"background": true,
 	"background-color": true,
+	"fill": true,
 	"color": true,
 	"border": true,
 	"border-color": true,
@@ -64,7 +65,7 @@ static func parse_relevant_properties(css_text: String) -> Dictionary:
 # - "rgb(0, 0, 255)" -> "#0000ff"
 # - "border: 1px solid red" -> "#ff0000"
 static func normalize_property_value(key: String, value: String) -> String:
-	if key in ["background", "background-color", "color", "border-color", "outline-color"]:
+	if key in ["background", "background-color", "fill", "color", "border-color", "outline-color"]:
 		var maybe_color := normalize_color(value)
 		if maybe_color != "":
 			return maybe_color
@@ -162,6 +163,8 @@ static func compute_damage(bullet_profile: Dictionary, target_affinity: Dictiona
 static func _normalize_property_name(raw_key: String) -> String:
 	if raw_key == "background":
 		return "background-color"
+	if raw_key == "fill-color":
+		return "fill"
 	return raw_key
 
 # Intenta extraer color dentro de la definición de borde.

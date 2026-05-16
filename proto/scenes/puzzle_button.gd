@@ -6,7 +6,7 @@ signal puzzle_button_destroyed(button: PuzzleButton)
 @export var max_health: int = 1
 @export var css_affinity: Dictionary = {
 	"properties": {
-		"background-color": "blue"
+		"fill": "blue"
 	},
 	"property_bonus": 1,
 	"critical_bonus": 4

@@ -199,7 +199,7 @@ position = Vector2(5900, -260)
 css_affinity = {
 "critical_bonus": 4,
 "properties": {
-"background-color": "blue"
+"fill": "blue"
 },
 "property_bonus": 1
 }
@@ -210,7 +210,7 @@ position = Vector2(6020, -260)
 css_affinity = {
 "critical_bonus": 4,
 "properties": {
-"background-color": "green"
+"fill": "green"
 },
 "property_bonus": 1
 }
@@ -221,7 +221,7 @@ position = Vector2(6140, -260)
 css_affinity = {
 "critical_bonus": 4,
 "properties": {
-"background-color": "red"
+"fill": "red"
 },
 "property_bonus": 1
 }
