@@ -536,7 +536,7 @@ func _play_shoot_pose() -> void:
 	if shoot_arm == null:
 		return
 	var aim_direction := _get_aim_direction()
-	var target_rotation := clamp(aim_direction.angle(), deg_to_rad(-70.0), deg_to_rad(70.0))
+	var target_rotation: Variant = clamp(aim_direction.angle(), deg_to_rad(-70.0), deg_to_rad(70.0))
 	var tw := create_tween()
 	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
 	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
