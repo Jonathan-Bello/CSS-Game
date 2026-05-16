@@ -582,7 +582,10 @@ func _update_shoot_arm_aim(_delta: float) -> void:
 	var aim_direction := mouse_global - arm_global
 	if aim_direction.length_squared() <= 0.0001:
 		return
-	shoot_arm.global_rotation = aim_direction.angle() + deg_to_rad(shoot_arm_aim_offset_degrees)
+	var offset_degrees := shoot_arm_aim_offset_degrees
+	if _facing_sign() < 0:
+		offset_degrees = -offset_degrees
+	shoot_arm.global_rotation = aim_direction.angle() + deg_to_rad(offset_degrees)
 
 func _update_aim_raycast() -> void:
 	if aim_raycast == null:
