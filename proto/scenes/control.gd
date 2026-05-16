@@ -43,8 +43,8 @@ func _notification(what: int) -> void:
 func _layout_and_sync() -> void:
 	var vp := get_viewport_rect().size
 	var target := window_size
-	var margin_x := max(24.0, vp.x * 0.06)
-	var margin_y := max(24.0, vp.y * 0.08)
+	var margin_x :Variant = max(24.0, vp.x * 0.06)
+	var margin_y : Variant= max(24.0, vp.y * 0.08)
 	var max_size := Vector2(
 		max(640.0, vp.x - margin_x * 2.0),
 		max(480.0, vp.y - margin_y * 2.0)
