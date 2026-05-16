@@ -28,6 +28,7 @@ config/icon="res://icon.svg"
 
 CssAffinity="*res://proto/scenes/css_affinity.gd"
 CssUnlocks="*res://proto/scenes/css_unlocks.gd"
+MovementUnlocks="*res://proto/scenes/movement_unlocks.gd"
 FontBootstrap="*res://proto/scenes/font_bootstrap.gd"
 
 [display]
