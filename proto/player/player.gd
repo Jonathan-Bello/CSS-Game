@@ -566,10 +566,12 @@ func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 func _update_shoot_arm_aim(_delta: float) -> void:
 	if shoot_arm == null:
 		return
-	var aim_direction := _get_aim_direction()
-	var target_rotation := aim_direction.angle()
-	target_rotation = clamp(target_rotation, deg_to_rad(-70.0), deg_to_rad(70.0))
-	shoot_arm.rotation = target_rotation
+	var mouse_global := get_global_mouse_position()
+	var arm_global := shoot_arm.global_position
+	var aim_direction := mouse_global - arm_global
+	if aim_direction.length_squared() <= 0.0001:
+		return
+	shoot_arm.global_rotation = aim_direction.angle()
 
 func _update_aim_raycast() -> void:
 	if aim_raycast == null:
