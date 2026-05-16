@@ -2,6 +2,14 @@
 <!doctype html>
 <html><head><meta charset="utf-8"/>
 <style>
+  /* Fuente personalizada local (si existe en el proyecto). */
+  @font-face{
+    font-family:'OverlayDisplay';
+    src:url('res://proto/assets/fonts/Orbitron-Regular.ttf') format('truetype');
+    font-weight:400;
+    font-style:normal;
+    font-display:swap;
+  }
   html,body{margin:0;background:transparent;color:#fff;font-family:'Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
   .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
   .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
@@ -17,8 +25,14 @@
   .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(320px,.9fr);gap:10px;padding:10px;box-sizing:border-box;height:100%;min-height:0}
   .workbench{grid-column:1 / span 2;display:grid;grid-template-rows:auto 1fr;gap:10px;min-height:0}
   .editor{display:grid;grid-template-rows:auto auto;gap:10px;min-height:0}
-  textarea{width:100%;height:170px;margin:0;background:#0b1222;color:#bfe;border:1px solid #345;border-radius:10px;box-sizing:border-box;padding:10px;font-family:'Quantico',ui-monospace,SFMono-Regular,Menlo,monospace}
-  .code-hint{font-size:12px;color:#ffb4bf;margin:0}
+  .code-wrap{position:relative;border:1px solid #3d5688;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+  .code-topbar{height:28px;background:linear-gradient(180deg,#1d2d4d,#16243f);border-bottom:1px solid #3d5688;display:flex;align-items:center;padding:0 10px;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .dot.red{background:#ff5f57}.dot.yellow{background:#febc2e}.dot.green{background:#28c840}
+  .dot-label{margin-left:6px;font-size:11px;color:#9eb8ea;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  textarea{width:100%;height:185px;margin:0;background:linear-gradient(180deg,#0c1427,#0a1120);color:#bfe;border:0;box-sizing:border-box;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.45;tab-size:2;outline:none}
+  textarea:focus{box-shadow:inset 0 0 0 1px #66a3ff}
+  .code-hint{font-size:12px;color:#ffb4bf;margin:0;padding:6px 8px;border:1px solid rgba(0,0,0,.9);border-radius:8px;background:rgba(7,10,20,.55);text-shadow:-1px 0 #000,0 1px #000,1px 0 #000,0 -1px #000}
   .prop-panel{background:linear-gradient(145deg,#121d34,#0f162a);border:1px solid #314266;border-radius:10px;padding:10px}
   .prop-panel h3{margin:0 0 8px;font-size:13px;color:#d5e4ff}
   .prop-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
@@ -62,9 +76,15 @@
 	<div class="main">
 	  <div class="workbench">
 		<div class="editor">
-		  <textarea id="css">svg{width:180px;height:180px}
+		  <div class="code-wrap">
+			<div class="code-topbar">
+			  <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+			  <span class="dot-label">editor.css</span>
+			</div>
+		    <textarea id="css">svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </textarea>
+		  </div>
 		  <p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
 		  <div class="prop-panel">
 			<h3>Propiedades detectadas</h3>
@@ -430,22 +450,26 @@ function getLockedPropertiesFromCss(text){
 function getDetectedProperties(text){
   const found = [];
   const seen = new Set();
-  const cleaned = String(text || '')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/^[^{]*\{/g, '')
-    .replace(/\}[\s\S]*$/g, '');
-  const declarations = cleaned.match(/([a-zA-Z-]+)\s*:\s*([^;{}]+)/g) || [];
-  for(const rawChunk of declarations){
-    const chunk = String(rawChunk || '').trim();
-    if(!chunk) continue;
-    const idx = chunk.indexOf(':');
-    if(idx === -1) continue;
-    let key = chunk.slice(0, idx).trim().toLowerCase();
-    if(key === 'background') key = 'background-color';
-    if(!key) continue;
-    if(!seen.has(key)){
-      seen.add(key);
-      found.push(key);
+  const cleaned = String(text || '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = cleaned.match(/[^{}]+\{[^{}]*\}/g) || [];
+  for(const block of blocks){
+    const openIdx = block.indexOf('{');
+    const closeIdx = block.lastIndexOf('}');
+    if(openIdx === -1 || closeIdx === -1 || closeIdx <= openIdx) continue;
+    const body = block.slice(openIdx + 1, closeIdx);
+    const declarations = body.split(';');
+    for(const rawDecl of declarations){
+      const chunk = String(rawDecl || '').trim();
+      if(!chunk) continue;
+      const idx = chunk.indexOf(':');
+      if(idx === -1) continue;
+      let key = chunk.slice(0, idx).trim().toLowerCase();
+      if(key === 'background') key = 'background-color';
+      if(!key) continue;
+      if(!seen.has(key)){
+        seen.add(key);
+        found.push(key);
+      }
     }
   }
   return found;
