@@ -62,8 +62,7 @@
 	<div class="main">
 	  <div class="workbench">
 		<div class="editor">
-		  <textarea id="css">/* edita el estilo */
-svg{width:180px;height:180px}
+		  <textarea id="css">svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </textarea>
 		  <p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
@@ -138,9 +137,8 @@ const chatMessagesEl = document.getElementById('chatMessages');
 const chatInputEl = document.getElementById('chatInput');
 const chatSendEl = document.getElementById('chatSend');
 const chatTypingEl = document.getElementById('chatTyping');
-const DEFAULT_CSS = "/* edita el estilo */\\n"
-  + "svg{width:180px;height:180px}\\n"
-  + "#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}";
+const DEFAULT_CSS = `svg{width:180px;height:180px}
+#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}`;
 let unlockState = {};
 let allProperties = [];
 let bulletEquipped = false;
@@ -595,11 +593,8 @@ function equipBullet(){
     const sourceH = Math.max(1, img.naturalHeight || 256);
     const targetW = clampBulletSize(bulletSize.width);
     const targetH = clampBulletSize(bulletSize.height);
-    const ratio = Math.min(1, maxSize / Math.max(sourceW, sourceH));
-    const sampledW = Math.max(1, Math.round(sourceW * ratio));
-    const sampledH = Math.max(1, Math.round(sourceH * ratio));
-    const outW = Math.max(10, Math.min(maxSize, Math.round(Math.min(targetW, sampledW))));
-    const outH = Math.max(10, Math.min(maxSize, Math.round(Math.min(targetH, sampledH))));
+    const outW = Math.max(10, Math.min(maxSize, targetW));
+    const outH = Math.max(10, Math.min(maxSize, targetH));
 
     const c = document.createElement('canvas');
     c.width = outW;
