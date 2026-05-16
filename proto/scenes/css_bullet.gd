@@ -38,22 +38,22 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	global_position += direction.normalized() * speed * delta
 
-func setup_from_css(new_css_text: String, facing: int, new_speed: float, new_damage: int) -> void:
+func setup_from_css(new_css_text: String, facing: int, new_speed: float, new_damage: int, aim_direction: Vector2 = Vector2.ZERO) -> void:
 	css_text = new_css_text
 	speed = new_speed
 	damage = new_damage
-	direction = Vector2(float(facing), 0.0)
+	direction = aim_direction.normalized() if aim_direction.length_squared() > 0.0001 else Vector2(float(facing), 0.0)
 	css_rules = _extract_rules(css_text)
 	css_properties = CssAffinity.parse_relevant_properties(css_text)
 	texture_path = ""
 	_set_css_metadata()
 
 # Configura bala desde profile serializado (JSON) enviado por el editor web.
-func setup_from_profile(profile: Dictionary, facing: int, new_speed: float, new_damage: int) -> void:
+func setup_from_profile(profile: Dictionary, facing: int, new_speed: float, new_damage: int, aim_direction: Vector2 = Vector2.ZERO) -> void:
 	css_text = String(profile.get("css_text", ""))
 	speed = new_speed
 	damage = new_damage
-	direction = Vector2(float(facing), 0.0)
+	direction = aim_direction.normalized() if aim_direction.length_squared() > 0.0001 else Vector2(float(facing), 0.0)
 	css_rules = _extract_rules(css_text)
 	css_properties = CssAffinity.parse_relevant_properties(css_text)
 	if profile.has("css_rules"):

@@ -119,6 +119,8 @@ extends CharacterBody2D
 @export_node_path("Node2D") var shoot_arm_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
 ## Punto de salida del disparo.
 @export_node_path("Node2D") var shoot_origin_path: NodePath = ^"Skeleton2D/origen/cintura/torso/brazoD"
+## RayCast2D para apuntado hacia el mouse.
+@export_node_path("RayCast2D") var aim_raycast_path: NodePath = ^"hitboxes/aim_raycast"
 
 @export_group("Disparo CSS")
 @export var bullet_scene: PackedScene = preload("res://proto/scenes/css_bullet.tscn")
@@ -192,6 +194,7 @@ var lock_controls := false # micro “hit-stop” al atacar
 @onready var attack_area: Area2D = get_node_or_null(attack_area_path)
 @onready var shoot_arm: Node2D = get_node_or_null(shoot_arm_path)
 @onready var shoot_origin: Node2D = get_node_or_null(shoot_origin_path)
+@onready var aim_raycast: RayCast2D = get_node_or_null(aim_raycast_path)
 @onready var lbl_state: Label = get_node_or_null(lbl_state_path)
 @onready var lbl_vel: Label = get_node_or_null(lbl_vel_path)
 @onready var lbl_flags: Label = get_node_or_null(lbl_flags_path)
@@ -209,6 +212,7 @@ func _ready() -> void:
 		# get_tree().debug_collisions_hint = true
 		wall_probe.force_raycast_update()
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
+	if aim_raycast == null: push_warning("aim_raycast no encontrado en '%s'." % aim_raycast_path)
 	if attack_area:
 		attack_area.monitoring = false
 		attack_area.visible = false
@@ -217,6 +221,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_aim_raycast()
 	# 1) Timers base (suelo, coyote, cooldowns)
 	if is_on_floor():
 		time_since_grounded = 0.0
@@ -508,7 +513,8 @@ func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 		spawn_pos = shoot_origin.global_position
 
 	bullet.global_position = spawn_pos
-	var facing := _facing_sign()
+	var aim_direction := _get_aim_direction()
+	var facing := 1 if aim_direction.x >= 0.0 else -1
 	var tuned_stats := precomputed_stats
 	if tuned_stats.is_empty():
 		# Fallback por seguridad si no nos pasaron stats precalculados.
@@ -517,22 +523,43 @@ func _spawn_css_bullet(precomputed_stats: Dictionary = {}) -> void:
 	var tuned_damage: int = tuned_stats.get("damage", bullet_damage)
 
 	if not current_bullet_profile.is_empty() and bullet.has_method("setup_from_profile"):
-		bullet.call("setup_from_profile", current_bullet_profile, facing, tuned_speed, tuned_damage)
+		bullet.call("setup_from_profile", current_bullet_profile, facing, tuned_speed, tuned_damage, aim_direction)
 	elif bullet.has_method("setup_from_css"):
 		var fallback_css := _get_active_bullet_css_text()
-		bullet.call("setup_from_css", fallback_css, facing, tuned_speed, tuned_damage)
+		bullet.call("setup_from_css", fallback_css, facing, tuned_speed, tuned_damage, aim_direction)
 	elif "direction" in bullet:
-		bullet.direction = Vector2(float(facing), 0.0)
+		bullet.direction = aim_direction
 
 	get_tree().current_scene.add_child(bullet)
 
 func _play_shoot_pose() -> void:
 	if shoot_arm == null:
 		return
-	var target_rotation := deg_to_rad(-35.0 * float(_facing_sign()))
+	var aim_direction := _get_aim_direction()
+	var target_rotation: Variant = clamp(aim_direction.angle(), deg_to_rad(-70.0), deg_to_rad(70.0))
 	var tw := create_tween()
 	tw.tween_property(shoot_arm, "rotation", target_rotation, 0.06)
 	tw.tween_property(shoot_arm, "rotation", 0.0, 0.12)
+
+func _update_aim_raycast() -> void:
+	if aim_raycast == null:
+		return
+	var mouse_global := get_global_mouse_position()
+	var from := aim_raycast.global_position
+	aim_raycast.target_position = mouse_global - from
+	aim_raycast.force_raycast_update()
+
+func _get_aim_direction() -> Vector2:
+	var from := shoot_origin.global_position if shoot_origin else global_position
+	var target := get_global_mouse_position()
+	if aim_raycast:
+		target = aim_raycast.to_global(aim_raycast.target_position)
+		if aim_raycast.is_colliding():
+			target = aim_raycast.get_collision_point()
+	var direction := target - from
+	if direction.length_squared() <= 0.0001:
+		return Vector2(float(_facing_sign()), 0.0)
+	return direction.normalized()
 
 func equip_bullet_from_profile(profile: Dictionary) -> void:
 	if profile.is_empty():
