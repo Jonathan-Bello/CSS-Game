@@ -220,7 +220,7 @@ func _physics_process(delta: float) -> void:
 	# 1) Timers base (suelo, coyote, cooldowns)
 	if is_on_floor():
 		time_since_grounded = 0.0
-		can_double_jump = ENABLE_DOUBLE_JUMP
+		can_double_jump = _can_use_double_jump()
 	else:
 		time_since_grounded += delta
 
@@ -331,7 +331,7 @@ func _handle_jump_buffer() -> void:
 		time_since_jump_pressed = 999.0
 
 	# Doble salto en aire (si queda)
-	if ENABLE_DOUBLE_JUMP and not is_on_floor() and can_double_jump and Input.is_action_just_pressed("jump"):
+	if _can_use_double_jump() and not is_on_floor() and can_double_jump and Input.is_action_just_pressed("jump"):
 		_do_jump(DOUBLE_JUMP_VELOCITY)
 		can_double_jump = false
 
@@ -378,6 +378,9 @@ func _apply_gravity(delta: float, want_down: bool) -> void:
 # DASH (impulso X + Y) con tiempo y cooldown
 # ============================================================================
 func _handle_dash(dir: float) -> void:
+	if not _can_use_dash():
+		return
+
 	if Input.is_action_just_pressed("dash") and dash_cooldown == 0.0:
 		var d := dir if dir != 0.0 else float(_facing_sign())
 		_do_dash(d)
@@ -442,6 +445,21 @@ func _wall_jump(wall_dir: int) -> void:
 # ============================================================================
 # ATAQUE (frontal) — hooks listos para UP/DOWN
 # ============================================================================
+
+func _can_use_dash() -> bool:
+	var singleton := get_node_or_null("/root/MovementUnlocks")
+	if singleton == null:
+		return true
+	return singleton.has_ability("dash")
+
+func _can_use_double_jump() -> bool:
+	if not ENABLE_DOUBLE_JUMP:
+		return false
+	var singleton := get_node_or_null("/root/MovementUnlocks")
+	if singleton == null:
+		return ENABLE_DOUBLE_JUMP
+	return singleton.has_ability("double_jump")
+
 func _handle_attack_input() -> void:
 	# Evita disparar si aún no vence la cadencia dinámica.
 	if Input.is_action_just_pressed("attack") and state != State.ATTACK and state != State.DASH and attack_cooldown_timer <= 0.0:
