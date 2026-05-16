@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=4 uid="uid://bqqdr6qwiergq"]
+[gd_scene load_steps=24 format=4 uid="uid://bqqdr6qwiergq"]
 
 [ext_resource type="PackedScene" uid="uid://cn1bukpgco5dm" path="res://proto/player/player.tscn" id="2_74bkv"]
 [ext_resource type="Texture2D" uid="uid://ccp0ebwa3iv17" path="res://proto/assets/solarpunk_tileset.svg" id="2_odpp0"]
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://7djq136utceu" path="res://proto/assets/backgrounds/hoguera.svg" id="4_24o53"]
 [ext_resource type="Script" uid="uid://bkx1q2umxh5yp" path="res://proto/scenes/arena2D.gd" id="4_ydl1v"]
 [ext_resource type="PackedScene" path="res://proto/scenes/css_robot_enemy.tscn" id="5_enemy"]
+[ext_resource type="PackedScene" path="res://proto/scenes/puzzle_button.tscn" id="6_button"]
+[ext_resource type="PackedScene" path="res://proto/scenes/puzzle_door.tscn" id="7_door"]
 [ext_resource type="Texture2D" uid="uid://cgrqcvcvvybr6" path="res://proto/assets/backgrounds/silla.svg" id="6_6y64k"]
 [ext_resource type="Texture2D" uid="uid://su71a5vycwmc" path="res://proto/background/Fondo.svg" id="7_073u2"]
 [ext_resource type="Texture2D" uid="uid://dtt3i7xixaiv7" path="res://proto/background/Intermedio.svg" id="8_odpp0"]
@@ -188,6 +190,42 @@ shape = SubResource("RectangleShape2D_ja6st")
 
 [node name="CssRobotEnemy" parent="." instance=ExtResource("5_enemy")]
 position = Vector2(6008, -25)
+
+[node name="PuzzleDoor" parent="." instance=ExtResource("7_door")]
+position = Vector2(6565, -111)
+
+[node name="PuzzleButtonBlue" parent="." instance=ExtResource("6_button")]
+position = Vector2(5900, -260)
+css_affinity = {
+"critical_bonus": 4,
+"properties": {
+"background-color": "blue"
+},
+"property_bonus": 1
+}
+solid_color = Color(0.2, 0.45, 1, 1)
+
+[node name="PuzzleButtonGreen" parent="." instance=ExtResource("6_button")]
+position = Vector2(6020, -260)
+css_affinity = {
+"critical_bonus": 4,
+"properties": {
+"background-color": "green"
+},
+"property_bonus": 1
+}
+solid_color = Color(0.2, 0.8, 0.3, 1)
+
+[node name="PuzzleButtonRed" parent="." instance=ExtResource("6_button")]
+position = Vector2(6140, -260)
+css_affinity = {
+"critical_bonus": 4,
+"properties": {
+"background-color": "red"
+},
+"property_bonus": 1
+}
+solid_color = Color(1, 0.25, 0.25, 1)
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 
