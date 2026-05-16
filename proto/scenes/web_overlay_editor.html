@@ -494,7 +494,7 @@ function renderDetectedProperties(){
 
 function _sanitizeForPreviewSvg(raw){
   if(typeof raw !== 'string') return '';
-  return raw.replace(/<script[\\s\\S]*?>[\\s\\S]*?<\\/script>/gi, '');
+  return raw.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
 }
 
 function _extractShapeNode(nextSvg){
