@@ -170,7 +170,13 @@ func _read_editor_html_template() -> String:
 	if file == null:
 		push_warning("[WebOverlay] No se pudo abrir template HTML: %s" % template_path)
 		return ""
-	return file.get_as_text()
+	var html := file.get_as_text()
+	# Hardening: si el template llega con escapes heredados del antiguo string
+	# embebido (ej. [\\s\\S] o <\\/script>), normalizamos a regex JS válido.
+	html = html.replace("\\\\s", "\\s")
+	html = html.replace("\\\\S", "\\S")
+	html = html.replace("<\\\\/script>", "<\\/script>")
+	return html
 
 func _load_editor_html() -> void:
 	_web_hydration_payload = _read_bullet_hydration_payload()
