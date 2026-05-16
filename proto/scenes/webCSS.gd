@@ -64,8 +64,19 @@ func _input(ev: InputEvent) -> void:
 
 func _load_editor_html() -> void:
 	print("[WebOverlay] load_html()…")
-	var html := "<!doctype html><html><body style='margin:0;color:white;background:transparent'><h3>Editor</h3><script>ipc.postMessage('html_loaded')</script></body></html>"
-	web.call("load_html", html)
+	var html_text := ""
+	var file := FileAccess.open("res://proto/scenes/web_overlay_editor.html", FileAccess.READ)
+
+	if file == null:
+		push_error("[WebOverlay] No se pudo abrir res://proto/scenes/web_overlay_editor.html")
+		html_text = "<!doctype html><html><body style='margin:0;color:white;background:transparent'><script>ipc.postMessage('html_loaded')</script></body></html>"
+	else:
+		html_text = file.get_as_text()
+		if html_text.strip_edges().is_empty():
+			push_error("[WebOverlay] web_overlay_editor.html está vacío")
+			html_text = "<!doctype html><html><body style='margin:0;color:white;background:transparent'><script>ipc.postMessage('html_loaded')</script></body></html>"
+
+	web.call("load_html", html_text)
 
 func _on_web_ipc_message(msg: String) -> void:
 	print("[WebOverlay] ipc_message: ", msg)
