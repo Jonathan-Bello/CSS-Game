@@ -30,8 +30,9 @@
   .dot{width:9px;height:9px;border-radius:50%}
   .dot.red{background:#ff5f57}.dot.yellow{background:#febc2e}.dot.green{background:#28c840}
   .dot-label{margin-left:6px;font-size:11px;color:#9eb8ea;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-  textarea{width:100%;height:185px;margin:0;background:linear-gradient(180deg,#0c1427,#0a1120);color:#bfe;border:0;box-sizing:border-box;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.45;tab-size:2;outline:none}
-  textarea:focus{box-shadow:inset 0 0 0 1px #66a3ff}
+  #cssEditor,.css-fallback{width:100%;height:185px;margin:0;background:linear-gradient(180deg,#0c1427,#0a1120);color:#bfe;border:0;box-sizing:border-box;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.45;tab-size:2;outline:none}
+  #cssEditor{padding:0}
+  .css-fallback:focus{box-shadow:inset 0 0 0 1px #66a3ff}
   .code-hint{font-size:12px;color:#ffb4bf;margin:0;padding:6px 8px;border:1px solid rgba(0,0,0,.9);border-radius:8px;background:rgba(7,10,20,.55);text-shadow:-1px 0 #000,0 1px #000,1px 0 #000,0 -1px #000}
   .prop-panel{background:linear-gradient(145deg,#121d34,#0f162a);border:1px solid #314266;border-radius:10px;padding:10px}
   .prop-panel h3{margin:0 0 8px;font-size:13px;color:#d5e4ff}
@@ -81,9 +82,7 @@
 			  <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
 			  <span class="dot-label">editor.css</span>
 			</div>
-		    <textarea id="css">svg{width:180px;height:180px}
-#shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
-</textarea>
+		    <div id="cssEditor"></div>
 		  </div>
 		  <p class="code-hint">Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.</p>
 		  <div class="prop-panel">
@@ -191,7 +190,9 @@
 })();
 </script>
 <script>
-const css = document.getElementById('css');
+const cssEditorHost = document.getElementById('cssEditor');
+let cssTextareaFallback = null;
+let monacoEditor = null;
 const svg = document.getElementById('svg');
 const equipIndicator = document.getElementById('equipIndicator');
 const updateIndicator = document.getElementById('updateIndicator');
@@ -210,6 +211,99 @@ let bulletUpdatedAt = '';
 let chatMessages = [{role:'emis', text:'¡Hola! Soy Emis. ¿Qué mejora quieres probar en tu bala?'}];
 let chatWaitingReply = false;
 const EMIS_CHAT_CONTRACT_VERSION = 'emis_chat_v1';
+
+function getCssValue(){
+  if(monacoEditor && typeof monacoEditor.getValue === 'function'){
+    return monacoEditor.getValue();
+  }
+  return cssTextareaFallback ? cssTextareaFallback.value : '';
+}
+
+function setCssValue(text){
+  const next = String(text || '');
+  if(monacoEditor && typeof monacoEditor.setValue === 'function'){
+    monacoEditor.setValue(next);
+    return;
+  }
+  if(cssTextareaFallback) cssTextareaFallback.value = next;
+}
+
+function onCssChange(callback){
+  if(typeof callback !== 'function') return;
+  if(monacoEditor && typeof monacoEditor.onDidChangeModelContent === 'function'){
+    monacoEditor.onDidChangeModelContent(callback);
+    return;
+  }
+  if(cssTextareaFallback){
+    cssTextareaFallback.addEventListener('input', callback);
+  }
+}
+
+function createFallbackTextarea(initialCss){
+  cssTextareaFallback = document.createElement('textarea');
+  cssTextareaFallback.id = 'css';
+  cssTextareaFallback.className = 'css-fallback';
+  cssTextareaFallback.value = String(initialCss || '');
+  if(cssEditorHost){
+    cssEditorHost.innerHTML = '';
+    cssEditorHost.appendChild(cssTextareaFallback);
+  }
+}
+
+function loadMonacoCssEditor(initialCss){
+  return new Promise(function(resolve){
+    const amdLoaderCandidates = [
+      '../../vendor/monaco/vs/loader.js',
+      '../vendor/monaco/vs/loader.js',
+      './vendor/monaco/vs/loader.js',
+      'vendor/monaco/vs/loader.js'
+    ];
+
+    function initMonaco(basePath){
+      try{
+        window.require.config({paths:{vs:basePath}});
+        window.require(['vs/editor/editor.main'], function(){
+          monacoEditor = window.monaco.editor.create(cssEditorHost, {
+            value: String(initialCss || ''),
+            language: 'css',
+            theme: 'vs-dark',
+            minimap: {enabled: false},
+            fontLigatures: true,
+            autoClosingBrackets: 'always',
+            automaticLayout: true,
+            scrollBeyondLastLine: false,
+            tabSize: 2
+          });
+          resolve(true);
+        }, function(){ resolve(false); });
+      }catch(_err){ resolve(false); }
+    }
+
+    if(window.require && window.require.config){
+      initMonaco('vendor/monaco/vs');
+      return;
+    }
+
+    function tryLoad(index){
+      if(index >= amdLoaderCandidates.length){
+        resolve(false);
+        return;
+      }
+      const src = amdLoaderCandidates[index];
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = function(){
+        const base = src.replace(/\/vs\/loader\.js$/, '/vs');
+        initMonaco(base);
+      };
+      script.onerror = function(){ tryLoad(index + 1); };
+      document.head.appendChild(script);
+    }
+
+    tryLoad(0);
+  });
+}
+
 
 function getStyleEl(){
   return document.getElementById('styleEl');
@@ -267,7 +361,7 @@ function buildPreviewCss(rawCss){
 function applyCssToPreview(){
   const liveStyle = getStyleEl();
   if(!liveStyle) return;
-  const previewCss = buildPreviewCss(css.value);
+  const previewCss = buildPreviewCss(getCssValue());
   liveStyle.textContent = previewCss.css;
   svg.style.width = String(previewCss.width) + "px";
   svg.style.height = String(previewCss.height) + "px";
@@ -279,8 +373,14 @@ function applyCssToPreview(){
   renderDetectedProperties();
 }
 
-applyCssToPreview();
-css.addEventListener('input', applyCssToPreview);
+createFallbackTextarea(DEFAULT_CSS);
+loadMonacoCssEditor(DEFAULT_CSS).then(function(ok){
+  if(!ok){
+    createFallbackTextarea(getCssValue() || DEFAULT_CSS);
+  }
+  onCssChange(applyCssToPreview);
+  applyCssToPreview();
+});
 ipc.postMessage('html_loaded');
 verifyOverlayFont();
 
@@ -433,8 +533,9 @@ function sendChatMessage(){
   console.log('[Emis] envío:', message);
   setChatWaitingState(true);
 
-  const detectedProps = getDetectedProperties(css ? css.value : '');
-  const lockedProps = getLockedPropertiesFromCss(css ? css.value : '');
+  const cssText = getCssValue();
+  const detectedProps = getDetectedProperties(cssText);
+  const lockedProps = getLockedPropertiesFromCss(cssText);
   const baseState = exportState();
   const snapshot = Object.assign({}, baseState, {
     detected_properties: detectedProps,
@@ -554,8 +655,9 @@ function closeOverlay(){
 }
 
 function renderDetectedProperties(){
-  const detected = getDetectedProperties(css.value);
-  const locked = new Set(getLockedPropertiesFromCss(css.value));
+  const cssText = getCssValue();
+  const detected = getDetectedProperties(cssText);
+  const locked = new Set(getLockedPropertiesFromCss(cssText));
 
   if(countIndicator){
     countIndicator.textContent = String(detected.length);
@@ -593,7 +695,7 @@ function hydrateFromGodot(payload){
   bulletUpdatedAt = typeof payload.updated_at === 'string' ? payload.updated_at : bulletUpdatedAt;
 
   if(nextCss){
-    css.value = nextCss;
+    setCssValue(nextCss);
   }
 
   if(nextSvgText){
@@ -618,7 +720,7 @@ function hydrateFromGodot(payload){
 
 function exportState(){
   return {
-    css_text: css.value,
+    css_text: getCssValue(),
     svg_text: new XMLSerializer().serializeToString(svg)
   };
 }
@@ -653,17 +755,18 @@ function setTpl(kind){
 
 function saveDraft(){
   const tpl = new XMLSerializer().serializeToString(svg);
-  ipc.postMessage(JSON.stringify({type:'save_css', css: css.value, svg: tpl}));
+  ipc.postMessage(JSON.stringify({type:'save_css', css: getCssValue(), svg: tpl}));
   bulletUpdatedAt = new Date().toISOString();
   updateIndicators();
 }
 
 function equipBullet(){
-  const bulletSize = readBulletSizeFromCss(css.value);
+  const currentCss = getCssValue();
+  const bulletSize = readBulletSizeFromCss(currentCss);
   const clone = svg.cloneNode(true);
   const cloneStyle = clone.querySelector('#styleEl');
   if(cloneStyle){
-    const previewCss = buildPreviewCss(css.value);
+    const previewCss = buildPreviewCss(currentCss);
     cloneStyle.textContent = previewCss.css;
   }
   const txt = new XMLSerializer().serializeToString(clone);
@@ -685,7 +788,7 @@ function equipBullet(){
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);
     const png = c.toDataURL('image/png');
     URL.revokeObjectURL(url);
-    ipc.postMessage(JSON.stringify({type:'equip_bullet', data_url: png, css: css.value, svg: txt, meta:{w:outW,h:outH,source_w:sourceW,source_h:sourceH}}));
+    ipc.postMessage(JSON.stringify({type:'equip_bullet', data_url: png, css: currentCss, svg: txt, meta:{w:outW,h:outH,source_w:sourceW,source_h:sourceH}}));
     bulletEquipped = true;
     bulletUpdatedAt = new Date().toISOString();
     updateIndicators();
@@ -696,7 +799,7 @@ function equipBullet(){
 
 function newBullet(){
   document.getElementById('tpl').value = 'box';
-  css.value = DEFAULT_CSS;
+  setCssValue(DEFAULT_CSS);
   setTpl('box');
   bulletEquipped = false;
   bulletUpdatedAt = '';
