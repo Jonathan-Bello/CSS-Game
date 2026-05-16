@@ -1,0 +1,229 @@
+[gd_scene load_steps=10 format=3 uid="uid://dlr7dytib1fkp"]
+
+[ext_resource type="Texture2D" uid="uid://cksyi3eyx3wtq" path="res://proto/assets/robots/scout_front/scout_body_front.svg" id="1_hoebx"]
+[ext_resource type="Texture2D" uid="uid://bishagjqiu7w1" path="res://proto/assets/robots/scout_front/scout_head_front.svg" id="2_wpkvm"]
+[ext_resource type="Texture2D" uid="uid://c7wrak31am0fv" path="res://proto/assets/robots/scout_front/scout_arm_left_front.svg" id="3_1l310"]
+[ext_resource type="Texture2D" uid="uid://bdx424ytukhc3" path="res://proto/assets/robots/scout_front/scout_arm_right_front.svg" id="4_neqqd"]
+[ext_resource type="Texture2D" uid="uid://dd0s0f3fp82bw" path="res://proto/assets/robots/scout_front/scout_leg_left_front.svg" id="5_1td7j"]
+[ext_resource type="Texture2D" uid="uid://coyqgvd545r87" path="res://proto/assets/robots/scout_front/scout_leg_right_front.svg" id="6_whsju"]
+
+[sub_resource type="Animation" id="Animation_rbp8u"]
+resource_name = "idle"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("ArmRightPivot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.08726646, 0.20943952, 0.08726646]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Body:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(-3, 0), Vector2(0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("HeadPivot:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.0, 0.034906585, 0.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("ArmLeftPivot:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.08726646, -0.20943952, -0.08726646]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("LegLeftPivot:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.034906585, 0.034906585, -0.034906585]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("LegRightPivot3:rotation")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.034906585, -0.034906585, 0.034906585]
+}
+
+[sub_resource type="Animation" id="Animation_uw076"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("ArmRightPivot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Body:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("HeadPivot:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("ArmLeftPivot:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-0.08726646]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("LegLeftPivot:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-0.034906585]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("LegRightPivot3:rotation")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.034906585]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_75qje"]
+_data = {
+&"RESET": SubResource("Animation_uw076"),
+&"idle": SubResource("Animation_rbp8u")
+}
+
+[node name="RobotEnemy" type="CharacterBody2D"]
+
+[node name="Body" type="Node2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="Body"]
+texture = ExtResource("1_hoebx")
+
+[node name="HeadPivot" type="Node2D" parent="."]
+position = Vector2(0, -75)
+
+[node name="Head" type="Node2D" parent="HeadPivot"]
+
+[node name="Sprite2D" type="Sprite2D" parent="HeadPivot/Head"]
+z_index = 2
+position = Vector2(0, 60)
+texture = ExtResource("2_wpkvm")
+
+[node name="ArmLeftPivot" type="Node2D" parent="."]
+position = Vector2(80, -70)
+rotation = -0.08726646
+
+[node name="ArmLeft" type="Node2D" parent="ArmLeftPivot"]
+
+[node name="Sprite2D" type="Sprite2D" parent="ArmLeftPivot/ArmLeft"]
+z_index = 1
+position = Vector2(-79, 70)
+texture = ExtResource("3_1l310")
+
+[node name="ArmRightPivot" type="Node2D" parent="."]
+position = Vector2(-84, -70)
+
+[node name="ArmRight" type="Node2D" parent="ArmRightPivot"]
+
+[node name="Sprite2D" type="Sprite2D" parent="ArmRightPivot/ArmRight"]
+z_index = 1
+position = Vector2(83, 70)
+texture = ExtResource("4_neqqd")
+
+[node name="LegLeftPivot" type="Node2D" parent="."]
+position = Vector2(24, 60)
+rotation = -0.034906585
+
+[node name="LegLeft" type="Node2D" parent="LegLeftPivot"]
+
+[node name="Sprite2D" type="Sprite2D" parent="LegLeftPivot/LegLeft"]
+z_index = -2
+position = Vector2(-24, -60)
+texture = ExtResource("5_1td7j")
+
+[node name="LegRightPivot3" type="Node2D" parent="."]
+position = Vector2(-24, 60)
+rotation = 0.034906585
+
+[node name="LegRight" type="Node2D" parent="LegRightPivot3"]
+
+[node name="Sprite2D" type="Sprite2D" parent="LegRightPivot3/LegRight"]
+z_index = -2
+position = Vector2(24, -60)
+texture = ExtResource("6_whsju")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_75qje")
+}
