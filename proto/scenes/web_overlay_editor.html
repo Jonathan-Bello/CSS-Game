@@ -14,6 +14,7 @@
   .wrap{display:grid;grid-template-rows:auto auto 1fr; height:100vh}
   .bar{display:flex;gap:8px;padding:10px;background:#0b1222e6;border-bottom:1px solid #2b3c64;align-items:center;backdrop-filter:blur(4px)}
   button{background:#4a90e2;border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+  button,select,input,textarea{font-family:'OverlayDisplay','Quantico','Orbitron','Rajdhani','Segoe UI',sans-serif}
   .btn-secondary{background:#2b3858}
   .btn-warn{background:#7d3142}
   button:disabled{opacity:.5;cursor:wait}
@@ -135,7 +136,7 @@
     sendDebug('debug_js_error', {message: reason, source: 'promise', line: 0, column: 0});
   };
 
-  function verifyOverlayFont(){
+  window.verifyOverlayFont = function verifyOverlayFont(){
     const sample = 'Overlay Font Probe 0123456789';
     const fallbackFamily = 'Segoe UI, sans-serif';
     const testFamily = "'OverlayDisplay', " + fallbackFamily;
