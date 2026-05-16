@@ -1,4 +1,3 @@
-"
 <!doctype html>
 <html><head><meta charset="utf-8"/>
 <style>
@@ -355,6 +354,10 @@ function normalizeEmisReplyText(payload){
       }
     }
   }
+
+  // Fallback: si no existe Rippledai, mostrar texto legible de reply/message
+  if(typeof payload.reply === 'string' && payload.reply.trim()) return payload.reply.trim();
+  if(typeof payload.message === 'string' && payload.message.trim()) return payload.message.trim();
 
   return '';
 }
