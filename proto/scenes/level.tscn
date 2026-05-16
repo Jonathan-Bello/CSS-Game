@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=4 uid="uid://bqqdr6qwiergq"]
+[gd_scene load_steps=15 format=4 uid="uid://bqqdr6qwiergq"]
 
 [ext_resource type="Texture2D" uid="uid://ce44e01sh53dr" path="res://proto/tiileset.svg" id="1_ydl1v"]
 [ext_resource type="PackedScene" uid="uid://cn1bukpgco5dm" path="res://proto/player/player.tscn" id="2_74bkv"]
+[ext_resource type="Texture2D" uid="uid://ccp0ebwa3iv17" path="res://proto/assets/solarpunk_tileset.svg" id="2_odpp0"]
 [ext_resource type="PackedScene" uid="uid://bsrxd5ua1ihos" path="res://proto/scenes/css_bullet.tscn" id="3_fc8pn"]
 [ext_resource type="Script" uid="uid://b4ftisvqkc7l" path="res://proto/scenes/control.gd" id="3_ydl1v"]
 [ext_resource type="Script" uid="uid://bkx1q2umxh5yp" path="res://proto/scenes/arena2D.gd" id="4_ydl1v"]
@@ -59,10 +60,35 @@ texture_region_size = Vector2i(128, 128)
 6:2/0 = 0
 7:2/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_86b2p"]
+texture = ExtResource("2_odpp0")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+
 [sub_resource type="TileSet" id="TileSet_fc8pn"]
 tile_size = Vector2i(128, 128)
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_afsis")
+sources/4 = SubResource("TileSetAtlasSource_86b2p")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ja6st"]
 size = Vector2(162, 130.5)

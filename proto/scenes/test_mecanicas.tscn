@@ -1,0 +1,176 @@
+[gd_scene load_steps=13 format=4 uid="uid://6x2wq1l26whv"]
+
+[ext_resource type="Texture2D" uid="uid://ccp0ebwa3iv17" path="res://proto/assets/solarpunk_tileset.svg" id="1_ebgmp"]
+[ext_resource type="Texture2D" uid="uid://su71a5vycwmc" path="res://proto/background/Fondo.svg" id="2_scynr"]
+[ext_resource type="Texture2D" uid="uid://dtt3i7xixaiv7" path="res://proto/background/Intermedio.svg" id="3_tnhw0"]
+[ext_resource type="Texture2D" uid="uid://d3an4jopmv6jn" path="res://proto/background/Principal.svg" id="4_xj6eg"]
+[ext_resource type="PackedScene" uid="uid://cn1bukpgco5dm" path="res://proto/player/player.tscn" id="5_g5tcw"]
+[ext_resource type="PackedScene" uid="uid://bsrxd5ua1ihos" path="res://proto/scenes/css_bullet.tscn" id="6_mob5r"]
+[ext_resource type="Script" uid="uid://b4ftisvqkc7l" path="res://proto/scenes/control.gd" id="7_j5shn"]
+[ext_resource type="Script" uid="uid://bkx1q2umxh5yp" path="res://proto/scenes/arena2D.gd" id="8_kb5v0"]
+[ext_resource type="PackedScene" path="res://proto/scenes/css_robot_enemy.tscn" id="9_5cevp"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fon6p"]
+texture = ExtResource("1_ebgmp")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+1:0/0 = 0
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+2:0/0 = 0
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+3:0/0 = 0
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+0:1/0 = 0
+0:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+1:1/0 = 0
+1:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+2:1/0 = 0
+2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+3:1/0 = 0
+3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+0:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -64, 64, -64, 64, 64, -64, 64)
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_0ib6e"]
+tile_size = Vector2i(128, 128)
+physics_layer_0/collision_layer = 1
+sources/4 = SubResource("TileSetAtlasSource_fon6p")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5hfto"]
+size = Vector2(162, 130.5)
+
+[node name="TestMecanicas" type="Node2D"]
+
+[node name="tileset" type="Node2D" parent="."]
+position = Vector2(7, 0)
+
+[node name="background" type="TileMapLayer" parent="tileset"]
+
+[node name="foreground" type="TileMapLayer" parent="tileset"]
+position = Vector2(399, 3)
+tile_map_data = PackedByteArray("AAD9/wAABAAAAAEAAAD9//v/BAAAAAEAAAD6//v/BAABAAAAAAD7//v/BAABAAAAAAD8//v/BAABAAAAAAD9/wEABAABAAAAAAD8//z/BAABAAAAAAD7//z/BAABAAAAAAD7//3/BAABAAAAAAD8//3/BAABAAAAAAD8//7/BAABAAAAAAD7//7/BAABAAAAAAD7/wAABAABAAAAAAD8////BAABAAAAAAD7////BAABAAAAAAD8/wAABAABAAAAAAD8/wEABAABAAAAAAD7/wEABAABAAAAAAD9//z/BAAAAAEAAAD9//3/BAAAAAEAAAD9//7/BAAAAAEAAAD9////BAAAAAEAAAD+/wIABAABAAAAAAD//wIABAABAAAAAAAAAAIABAABAAAAAAABAAIABAABAAAAAAACAAIABAABAAAAAAADAAIABAABAAAAAAAEAAIABAABAAAAAAAFAAIABAABAAAAAAAGAAIABAABAAAAAAAGAAMABAABAAAAAAAHAAMABAABAAAAAAAHAAIABAABAAAAAAAIAAIABAABAAAAAAAJAAIABAABAAAAAAD+/wMABAABAAAAAAD//wMABAABAAAAAAAAAAMABAABAAAAAAABAAMABAABAAAAAAACAAMABAABAAAAAAADAAMABAABAAAAAAAEAAMABAABAAAAAAAFAAMABAABAAAAAAAIAAMABAABAAAAAAAJAAMABAABAAAAAAAKAAIABAABAAAAAAAKAAMABAABAAAAAAABAAQABAABAAAAAAACAAQABAABAAAAAAADAAQABAABAAAAAAAEAAQABAABAAAAAAAFAAQABAABAAAAAAAGAAQABAABAAAAAAAHAAQABAABAAAAAAAIAAQABAABAAAAAAAJAAQABAABAAAAAAALAAIABAABAAAAAAALAAMABAABAAAAAAD7/wIABAABAAAAAAD7/wMABAABAAAAAAD7/wQABAABAAAAAAD8/wIABAABAAAAAAD8/wMABAABAAAAAAD8/wQABAABAAAAAAD9/wIABAABAAAAAAD9/wMABAABAAAAAAD9/wQABAABAAAAAAD+/wQABAABAAAAAAD//wQABAABAAAAAAAAAAQABAABAAAAAAAKAAQABAABAAAAAAALAAQABAABAAAAAAAMAAIABAABAAAAAAAMAAMABAABAAAAAAAMAAQABAABAAAAAAANAAIABAABAAAAAAANAAMABAABAAAAAAANAAQABAABAAAAAAAOAAIABAABAAAAAAAOAAMABAABAAAAAAAOAAQABAABAAAAAAAPAAIABAABAAAAAAAPAAMABAABAAAAAAAPAAQABAABAAAAAAAQAAIABAABAAAAAAAQAAMABAABAAAAAAAQAAQABAABAAAAAAARAAIABAABAAAAAAARAAMABAABAAAAAAARAAQABAABAAAAAAAPAPr/BAABAAAAAAAPAPv/BAABAAAAAAAPAPz/BAABAAAAAAAPAP3/BAABAAAAAAAPAP7/BAABAAAAAAAPAP//BAABAAAAAAAPAAAABAABAAAAAAAPAAEABAABAAAAAAAQAPr/BAABAAAAAAAQAPv/BAABAAAAAAAQAPz/BAABAAAAAAAQAP3/BAABAAAAAAAQAP7/BAABAAAAAAAQAP//BAABAAAAAAAQAAAABAABAAAAAAAQAAEABAABAAAAAAARAPr/BAABAAAAAAARAPv/BAABAAAAAAARAPz/BAABAAAAAAARAP3/BAABAAAAAAARAP7/BAABAAAAAAARAP//BAABAAAAAAARAAAABAABAAAAAAARAAEABAABAAAAAAD6//n/BAABAAAAAAD6//r/BAABAAAAAAD6//z/BAABAAAAAAD6//3/BAABAAAAAAD6//7/BAABAAAAAAD6////BAABAAAAAAD6/wAABAABAAAAAAD6/wEABAABAAAAAAD6/wIABAABAAAAAAD6/wMABAABAAAAAAD6/wQABAABAAAAAAD7//n/BAABAAAAAAD7//r/BAABAAAAAAD8//n/BAABAAAAAAD8//r/BAABAAAAAAD9//n/BAAAAAEAAAD9//r/BAAAAAEAAAD9//j/BAAAAAEAAAA=")
+tile_set = SubResource("TileSet_0ib6e")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.4, 1)
+motion_mirroring = Vector2(7680, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+position = Vector2(0, -2831)
+texture = ExtResource("2_scynr")
+centered = false
+
+[node name="ParallaxLayer2" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.6, 1)
+motion_mirroring = Vector2(5760, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer2"]
+position = Vector2(0, -2681)
+texture = ExtResource("3_tnhw0")
+centered = false
+
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.8, 1)
+motion_mirroring = Vector2(4800, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer3"]
+position = Vector2(0, -2156)
+texture = ExtResource("4_xj6eg")
+centered = false
+
+[node name="Player" parent="." instance=ExtResource("5_g5tcw")]
+position = Vector2(379.00003, 44.999985)
+scale = Vector2(0.35, 0.35)
+collision_layer = 3
+collision_mask = 3
+MAX_SPEED = 1000.0
+ACCEL_GROUND = 8000.0
+DECEL_GROUND = 9000.0
+ACCEL_AIR = 6000.0
+DECEL_AIR = 5000.0
+RUN_THRESHOLD = 10.0
+STICK_DEAD_ZONE = 0.5
+GRAVITY = 3800.0
+MAX_FALL_SPEED = 2800.0
+JUMP_VELOCITY = -1500.0
+COYOTE_TIME = 0.09
+JUMP_BUFFER_TIME = 0.12
+FALL_MULTIPLIER = 1.9
+LOW_JUMP_MULTIPLIER = 2.4
+FAST_FALL_MULTIPLIER = 2.6
+APEX_THRESHOLD = 120.0
+APEX_GRAVITY_SCALE = 0.85
+ENABLE_DOUBLE_JUMP = true
+DOUBLE_JUMP_VELOCITY = -1000.0
+DASH_SPEED = 3000.0
+DASH_UP_VELOCITY = -500.0
+DASH_TIME = 0.18
+DASH_COOLDOWN = 0.2
+WALL_SLIDE_GRAVITY = 900.0
+WALL_SLIDE_SPEED_MAX = 900.0
+WALL_JUMP_PUSH_TIME = 0.1
+WALL_JUMP_PUSH_FORCE = 1000.0
+WALL_STICK_TIME = 0.08
+WALL_COYOTE_TIME = 0.05
+ATTACK_TIME = 0.18
+ATTACK_KNOCK_PAUSE = 0.05
+gfx_root_path = NodePath("Skeleton2D")
+anim_path = NodePath("Skeleton2D/AnimationPlayer")
+shoot_arm_path = NodePath("Skeleton2D/origen/cintura/torso/brazoD")
+shoot_origin_path = NodePath("Skeleton2D/origen/cintura/torso/brazoD")
+bullet_scene = ExtResource("6_mob5r")
+bullet_speed = 1300.0
+bullet_damage = 1
+lbl_state_path = NodePath("debug/lbl_state")
+lbl_vel_path = NodePath("debug/lbl_vel")
+lbl_flags_path = NodePath("debug/lbl_flags")
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2(357, 19)
+
+[node name="Control" type="Control" parent="Player/Camera2D"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -2099.0
+offset_top = 27.0
+offset_right = -2059.0
+offset_bottom = 67.0
+script = ExtResource("7_j5shn")
+
+[node name="PanelContainer" type="PanelContainer" parent="Player/Camera2D/Control"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="WebView" type="WebView" parent="Player/Camera2D/Control/PanelContainer"]
+transparent = true
+focused_when_created = false
+layout_mode = 2
+
+[node name="Area2D" type="Area2D" parent="."]
+position = Vector2(844, 63)
+collision_layer = 2
+collision_mask = 2
+script = ExtResource("8_kb5v0")
+overlay_path = NodePath("../Player/Camera2D/Control/PanelContainer/WebView")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(33, 58.25)
+shape = SubResource("RectangleShape2D_5hfto")
+
+[node name="CssRobotEnemy" parent="." instance=ExtResource("9_5cevp")]
+position = Vector2(1670, -80)

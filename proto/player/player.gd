@@ -206,7 +206,7 @@ func _ready() -> void:
 	if gfx_root == null: push_warning("gfx_root no encontrado en '%s'." % gfx_root_path)
 	if wall_probe == null: push_warning("RayCast2D wall_probe no encontrado en '%s'." % wall_probe_path)
 	if debug_show_raycast and wall_probe:
-		get_tree().debug_collisions_hint = true
+		# get_tree().debug_collisions_hint = true
 		wall_probe.force_raycast_update()
 	if shoot_origin == null: push_warning("shoot_origin no encontrado en '%s'." % shoot_origin_path)
 	if attack_area:

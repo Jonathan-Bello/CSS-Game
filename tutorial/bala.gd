@@ -16,7 +16,7 @@ func _process(delta: float) -> void:
 	pass
 
 
-func _on_body_entered(body: Node) -> void:	
+func _on_body_entered(body: Node) -> void:
 	if body is Personaje:
 		print(touched_player)
 		if not touched_player:
