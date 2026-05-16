@@ -326,7 +326,7 @@ func _handle_jump_buffer() -> void:
 		time_since_jump_pressed = 999.0
 
 	# “Coyote desde pared”: permite saltar tras soltar muro
-	if has_buffer and wall_coyote_timer > 0.0:
+	if _can_use_wall_climb() and has_buffer and wall_coyote_timer > 0.0:
 		_wall_jump(last_wall_dir) # usa la última dirección de pared tocada
 		time_since_jump_pressed = 999.0
 
@@ -402,6 +402,12 @@ func _do_dash(dir_x: float) -> void:
 ## Al soltar, queda una “pegajosidad” (stick) y un coyote desde pared.
 func _update_wall_slide_state(dir: float) -> void:
 	if wall_probe == null: return
+	if not _can_use_wall_climb():
+		if state == State.WALL_SLIDE:
+			state = State.FALL
+		wall_coyote_timer = 0.0
+		wall_stick_timer = 0.0
+		return
 	if state == State.DASH or state == State.ATTACK: return
 
 	var on_front_wall := wall_probe.is_colliding()
@@ -459,6 +465,13 @@ func _can_use_double_jump() -> bool:
 	if singleton == null:
 		return ENABLE_DOUBLE_JUMP
 	return singleton.has_ability("double_jump")
+
+
+func _can_use_wall_climb() -> bool:
+	var singleton := get_node_or_null("/root/MovementUnlocks")
+	if singleton == null:
+		return true
+	return singleton.has_ability("wall_climb")
 
 func _handle_attack_input() -> void:
 	# Evita disparar si aún no vence la cadencia dinámica.

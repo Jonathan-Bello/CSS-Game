@@ -7,16 +7,19 @@ extends Node
 const SAVE_PATH := "user://progress/movement_unlocks.json"
 const ABILITY_DASH := "dash"
 const ABILITY_DOUBLE_JUMP := "double_jump"
+const ABILITY_WALL_CLIMB := "wall_climb"
 
 var ALL_ABILITIES: PackedStringArray = PackedStringArray([
 	ABILITY_DASH,
 	ABILITY_DOUBLE_JUMP,
+	ABILITY_WALL_CLIMB,
 ])
 
 # En una partida nueva arrancan bloqueadas.
 const DEFAULT_UNLOCKED := {
 	ABILITY_DASH: false,
 	ABILITY_DOUBLE_JUMP: false,
+	ABILITY_WALL_CLIMB: false,
 }
 
 var _unlock_state: Dictionary = {}
@@ -63,10 +66,20 @@ func lock_many(ability_list: PackedStringArray) -> void:
 		_unlock_state[key] = false
 	_save_state()
 
+
+func reset_unlocks(use_defaults: bool = true) -> void:
+	_unlock_state.clear()
+	for ability in ALL_ABILITIES:
+		var normalized := _normalize_ability(ability)
+		_unlock_state[normalized] = bool(DEFAULT_UNLOCKED.get(normalized, false)) if use_defaults else false
+	_save_state()
+
 func _normalize_ability(raw_ability: String) -> String:
 	var key := raw_ability.strip_edges().to_lower()
 	if key == "doublejump":
 		return ABILITY_DOUBLE_JUMP
+	if key == "wallclimb":
+		return ABILITY_WALL_CLIMB
 	return key
 
 func _load_state() -> void:
