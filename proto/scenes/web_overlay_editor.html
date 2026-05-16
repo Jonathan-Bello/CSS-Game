@@ -202,6 +202,7 @@ const chatMessagesEl = document.getElementById('chatMessages');
 const chatInputEl = document.getElementById('chatInput');
 const chatSendEl = document.getElementById('chatSend');
 const chatTypingEl = document.getElementById('chatTyping');
+const codeHintEl = document.querySelector('.code-hint');
 const DEFAULT_CSS = `svg{width:180px;height:180px}
 #shape{fill:#5cf;stroke:#036;stroke-width:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}`;
 let unlockState = {};
@@ -211,6 +212,12 @@ let bulletUpdatedAt = '';
 let chatMessages = [{role:'emis', text:'¡Hola! Soy Emis. ¿Qué mejora quieres probar en tu bala?'}];
 let chatWaitingReply = false;
 const EMIS_CHAT_CONTRACT_VERSION = 'emis_chat_v1';
+
+
+function setEditorStatusMessage(message){
+  if(!codeHintEl || typeof message !== 'string') return;
+  codeHintEl.textContent = message;
+}
 
 function getCssValue(){
   if(monacoEditor && typeof monacoEditor.getValue === 'function'){
@@ -374,9 +381,13 @@ function applyCssToPreview(){
 }
 
 createFallbackTextarea(DEFAULT_CSS);
+setEditorStatusMessage('Cargando editor avanzado…');
 loadMonacoCssEditor(DEFAULT_CSS).then(function(ok){
   if(!ok){
     createFallbackTextarea(getCssValue() || DEFAULT_CSS);
+    setEditorStatusMessage('Editor avanzado no disponible (faltan assets locales de Monaco). Modo compatibilidad activo.');
+  }else{
+    setEditorStatusMessage('Las propiedades bloqueadas se muestran en rojo y no aplican bonus de ataque.');
   }
   onCssChange(applyCssToPreview);
   applyCssToPreview();
