@@ -140,6 +140,9 @@ extends CharacterBody2D
 @export var bullet_cadence_min_factor: float = 0.45
 @export var bullet_cadence_max_factor: float = 2.0
 @export var debug_show_raycast: bool = true
+@export var debug_show_shoot_bone: bool = false
+@export var debug_shoot_bone_length: float = 110.0
+@export var shoot_arm_aim_offset_degrees: float = 0.0
 
 var bullet_profile_path: String = ""
 var current_bullet_profile: Dictionary = {}
@@ -227,6 +230,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_update_aim_raycast()
 	_update_shoot_arm_aim(delta)
+	if debug_show_shoot_bone:
+		queue_redraw()
 	# 1) Timers base (suelo, coyote, cooldowns)
 	if is_on_floor():
 		time_since_grounded = 0.0
@@ -577,7 +582,7 @@ func _update_shoot_arm_aim(_delta: float) -> void:
 	var aim_direction := mouse_global - arm_global
 	if aim_direction.length_squared() <= 0.0001:
 		return
-	shoot_arm.global_rotation = aim_direction.angle()
+	shoot_arm.global_rotation = aim_direction.angle() + deg_to_rad(shoot_arm_aim_offset_degrees)
 
 func _update_aim_raycast() -> void:
 	if aim_raycast == null:
@@ -741,6 +746,15 @@ func _play_if_changed(anim_name: StringName, loop: bool = true) -> void:
 		anim.play(String(anim_name))
 		current_anim = anim_name
 
+
+func _draw() -> void:
+	if not debug_show_shoot_bone or shoot_arm == null:
+		return
+	var bone_pos := to_local(shoot_arm.global_position)
+	var tip_pos := to_local(shoot_arm.to_global(Vector2(debug_shoot_bone_length, 0.0)))
+	draw_line(bone_pos, tip_pos, Color(1.0, 0.2, 0.2, 0.95), 3.0)
+	draw_circle(bone_pos, 4.0, Color(0.2, 1.0, 0.2, 0.9))
+	draw_circle(tip_pos, 3.0, Color(1.0, 1.0, 0.2, 0.9))
 
 # ============================================================================
 # DEBUG — Labels
